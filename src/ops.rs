@@ -25,6 +25,7 @@ extern "C" {
     fn compare_64(a: i64, b: i64) -> i8;
 }
 
+// This implicitly requires that Self implement the copy trait.
 macro_rules! impl_oswap {
     () => {
         fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
@@ -53,46 +54,24 @@ macro_rules! impl_omax {
     };
 }
 
+// This implements ObliviousOps for primitive types by calling out to C
+// functions. I decided to call to C because 1) Rust does not allow many of the
+// operations that these bit manipulations require (e.g., overflow, casting,
+// etc.) and 2) I was unsure if the Rust workarounds would actually be constant
+// time (e.g., wrapping_sub, try_into, etc.).
 macro_rules! impl_ops {
-    ($t: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
-        impl ObliviousOps for $t {
+    ($from: ty, $into: ty, $intoelect_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
+        impl ObliviousOps for $from {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
-                unsafe { $select_fn(cond, a, b) }
+                unsafe { $intoelect_fn(cond, a as $into, b as $into) as Self }
             }
 
             fn oequal(a: Self, b: Self) -> bool {
-                unsafe { $equal_fn(a, b) }
+                unsafe { $equal_fn(a as $into, b as $into) }
             }
 
             fn ocompare(a: Self, b: Self) -> i8 {
-                unsafe { $compare_fn(a, b) }
-            }
-            impl_oswap!();
-            impl_omin!();
-            impl_omax!();
-        }
-    };
-}
-
-macro_rules! impl_ops_typecast {
-    ($u: ty, $s: ty) => {
-        impl ObliviousOps for $u {
-            fn oselect(cond: bool, a: Self, b: Self) -> Self {
-                let a = a as $s;
-                let b = b as $s;
-                <$s>::oselect(cond, a, b) as Self
-            }
-
-            fn oequal(a: Self, b: Self) -> bool {
-                let a = a as $s;
-                let b = b as $s;
-                <$s>::oequal(a, b)
-            }
-
-            fn ocompare(a: Self, b: Self) -> i8 {
-                let a = a as $s;
-                let b = b as $s;
-                <$s>::ocompare(a, b)
+                unsafe { $compare_fn(a as $into, b as $into) }
             }
 
             impl_oswap!();
@@ -102,24 +81,22 @@ macro_rules! impl_ops_typecast {
     };
 }
 
-impl_ops!(i8, select_8, equal_8, compare_8);
-impl_ops!(i16, select_16, equal_16, compare_16);
-impl_ops!(i32, select_32, equal_32, compare_32);
-impl_ops!(i64, select_64, equal_64, compare_64);
-
-impl_ops_typecast!(u8, i8);
-impl_ops_typecast!(u16, i16);
-impl_ops_typecast!(u32, i32);
-impl_ops_typecast!(u64, i64);
-impl_ops_typecast!(isize, i64); // TODO this should be arch dependent.
-impl_ops_typecast!(usize, i64); // TODO this should be arch dependent.
+impl_ops!(i8, i8, select_8, equal_8, compare_8);
+impl_ops!(u8, i8, select_8, equal_8, compare_8);
+impl_ops!(i16, i16, select_16, equal_16, compare_16);
+impl_ops!(u16, i16, select_16, equal_16, compare_16);
+impl_ops!(i32, i32, select_32, equal_32, compare_32);
+impl_ops!(u32, i32, select_32, equal_32, compare_32);
+impl_ops!(i64, i64, select_64, equal_64, compare_64);
+impl_ops!(u64, i64, select_64, equal_64, compare_64);
+impl_ops!(isize, i64, select_64, equal_64, compare_64); // TODO this should be arch dependent.
+impl_ops!(usize, i64, select_64, equal_64, compare_64); // TODO this should be arch dependent.
 
 // TODO Add implementation of select for iterators over types that implement
 // impl<I> for ObliviousOps for I
 // where
 // I: Iterator,
 // I::Item: ObliviousOps {
-
 // }
 
 #[cfg(test)]
