@@ -4,7 +4,7 @@ pub trait ObliviousOps {
     fn oequal(a: Self, b: Self) -> bool;
     fn ocompare(a: Self, b: Self) -> i8;
     fn omin(a: Self, b: Self) -> Self;
-    // fn omax(a: Self, b: Self); // TODO
+    fn omax(a: Self, b: Self) -> Self;
 }
 
 #[link(name = "ops", kind = "static")]
@@ -48,6 +48,11 @@ impl ObliviousOps for i8 {
         let cmp = Self::ocompare(a, b);
         Self::oselect(i8::oequal(cmp, -1), a, b)
     }
+
+    fn omax(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, 1), a, b)
+    }
 }
 
 impl ObliviousOps for i16 {
@@ -72,6 +77,11 @@ impl ObliviousOps for i16 {
     fn omin(a: Self, b: Self) -> Self {
         let cmp = Self::ocompare(a, b);
         Self::oselect(i8::oequal(cmp, -1), a, b)
+    }
+
+    fn omax(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, 1), a, b)
     }
 }
 
@@ -98,6 +108,11 @@ impl ObliviousOps for i32 {
         let cmp = Self::ocompare(a, b);
         Self::oselect(i8::oequal(cmp, -1), a, b)
     }
+
+    fn omax(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, 1), a, b)
+    }
 }
 
 impl ObliviousOps for i64 {
@@ -122,6 +137,11 @@ impl ObliviousOps for i64 {
     fn omin(a: Self, b: Self) -> Self {
         let cmp = Self::ocompare(a, b);
         Self::oselect(i8::oequal(cmp, -1), a, b)
+    }
+
+    fn omax(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, 1), a, b)
     }
 }
 
@@ -155,6 +175,11 @@ macro_rules! impl_unsigned {
             fn omin(a: Self, b: Self) -> Self {
                 let cmp = Self::ocompare(a, b);
                 Self::oselect(i8::oequal(cmp, -1), a, b)
+            }
+
+            fn omax(a: Self, b: Self) -> Self {
+                let cmp = Self::ocompare(a, b);
+                Self::oselect(i8::oequal(cmp, 1), a, b)
             }
         }
     };
@@ -304,5 +329,26 @@ mod tests {
         assert_eq!(u32::omin(2, 1), 1);
         assert_eq!(u64::omin(1, 2), 1);
         assert_eq!(u64::omin(2, 1), 1);
+    }
+
+    #[test]
+    fn test_omax() {
+        assert_eq!(i8::omax(1, 2), 2);
+        assert_eq!(i8::omax(2, 1), 2);
+        assert_eq!(i16::omax(1, 2), 2);
+        assert_eq!(i16::omax(2, 1), 2);
+        assert_eq!(i32::omax(1, 2), 2);
+        assert_eq!(i32::omax(2, 1), 2);
+        assert_eq!(i64::omax(1, 2), 2);
+        assert_eq!(i64::omax(2, 1), 2);
+
+        assert_eq!(u8::omax(1, 2), 2);
+        assert_eq!(u8::omax(2, 1), 2);
+        assert_eq!(u16::omax(1, 2), 2);
+        assert_eq!(u16::omax(2, 1), 2);
+        assert_eq!(u32::omax(1, 2), 2);
+        assert_eq!(u32::omax(2, 1), 2);
+        assert_eq!(u64::omax(1, 2), 2);
+        assert_eq!(u64::omax(2, 1), 2);
     }
 }
