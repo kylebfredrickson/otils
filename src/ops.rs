@@ -3,8 +3,8 @@ pub trait ObliviousOps {
     fn oswap(cond: bool, a: &mut Self, b: &mut Self);
     fn oequal(a: Self, b: Self) -> bool;
     fn ocompare(a: Self, b: Self) -> i8;
-    // fn olesser(a: Self, b: Self) // TODO
-    // fn ogreater(a: Self, b: Self) // TODO
+    fn omin(a: Self, b: Self) -> Self;
+    // fn omax(a: Self, b: Self); // TODO
 }
 
 #[link(name = "ops", kind = "static")]
@@ -26,110 +26,135 @@ extern "C" {
 }
 
 impl ObliviousOps for i8 {
-    fn oselect(cond: bool, a: i8, b: i8) -> i8 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
         unsafe { select_8(cond, a, b) }
     }
 
-    fn oswap(cond: bool, a: &mut i8, b: &mut i8) {
+    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
         let tmp = *a;
-        *a = i8::oselect(cond, *b, *a);
-        *b = i8::oselect(cond, tmp, *b);
+        *a = Self::oselect(cond, *b, *a);
+        *b = Self::oselect(cond, tmp, *b);
     }
 
-    fn oequal(a: i8, b: i8) -> bool {
+    fn oequal(a: Self, b: Self) -> bool {
         unsafe { equal_8(a, b) }
     }
 
-    fn ocompare(a: i8, b: i8) -> i8 {
+    fn ocompare(a: Self, b: Self) -> i8 {
         unsafe { compare_8(a, b) }
+    }
+
+    fn omin(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, -1), a, b)
     }
 }
 
 impl ObliviousOps for i16 {
-    fn oselect(cond: bool, a: i16, b: i16) -> i16 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
         unsafe { select_16(cond, a, b) }
     }
 
-    fn oswap(cond: bool, a: &mut i16, b: &mut i16) {
+    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
         let tmp = *a;
-        *a = i16::oselect(cond, *b, *a);
-        *b = i16::oselect(cond, tmp, *b);
+        *a = Self::oselect(cond, *b, *a);
+        *b = Self::oselect(cond, tmp, *b);
     }
 
-    fn oequal(a: i16, b: i16) -> bool {
+    fn oequal(a: Self, b: Self) -> bool {
         unsafe { equal_16(a, b) }
     }
 
-    fn ocompare(a: i16, b: i16) -> i8 {
+    fn ocompare(a: Self, b: Self) -> i8 {
         unsafe { compare_16(a, b) }
+    }
+
+    fn omin(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, -1), a, b)
     }
 }
 
 impl ObliviousOps for i32 {
-    fn oselect(cond: bool, a: i32, b: i32) -> i32 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
         unsafe { select_32(cond, a, b) }
     }
 
-    fn oswap(cond: bool, a: &mut i32, b: &mut i32) {
+    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
         let tmp = *a;
-        *a = i32::oselect(cond, *b, *a);
-        *b = i32::oselect(cond, tmp, *b);
+        *a = Self::oselect(cond, *b, *a);
+        *b = Self::oselect(cond, tmp, *b);
     }
 
-    fn oequal(a: i32, b: i32) -> bool {
+    fn oequal(a: Self, b: Self) -> bool {
         unsafe { equal_32(a, b) }
     }
 
-    fn ocompare(a: i32, b: i32) -> i8 {
+    fn ocompare(a: Self, b: Self) -> i8 {
         unsafe { compare_32(a, b) }
+    }
+
+    fn omin(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, -1), a, b)
     }
 }
 
 impl ObliviousOps for i64 {
-    fn oselect(cond: bool, a: i64, b: i64) -> i64 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
         unsafe { select_64(cond, a, b) }
     }
 
-    fn oswap(cond: bool, a: &mut i64, b: &mut i64) {
+    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
         let tmp = *a;
-        *a = i64::oselect(cond, *b, *a);
-        *b = i64::oselect(cond, tmp, *b);
+        *a = Self::oselect(cond, *b, *a);
+        *b = Self::oselect(cond, tmp, *b);
     }
 
-    fn oequal(a: i64, b: i64) -> bool {
+    fn oequal(a: Self, b: Self) -> bool {
         unsafe { equal_64(a, b) }
     }
 
-    fn ocompare(a: i64, b: i64) -> i8 {
+    fn ocompare(a: Self, b: Self) -> i8 {
         unsafe { compare_64(a, b) }
+    }
+
+    fn omin(a: Self, b: Self) -> Self {
+        let cmp = Self::ocompare(a, b);
+        Self::oselect(i8::oequal(cmp, -1), a, b)
     }
 }
 
 macro_rules! impl_unsigned {
     ($u: ty, $s: ty) => {
         impl ObliviousOps for $u {
-            fn oselect(cond: bool, a: $u, b: $u) -> $u {
+            fn oselect(cond: bool, a: Self, b: Self) -> Self {
                 let a = a as $s;
                 let b = b as $s;
-                <$s>::oselect(cond, a, b) as $u
+                <$s>::oselect(cond, a, b) as Self
             }
 
-            fn oswap(cond: bool, a: &mut $u, b: &mut $u) {
+            fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
                 let tmp = *a;
-                *a = <$u>::oselect(cond, *b, *a);
-                *b = <$u>::oselect(cond, tmp, *b);
+                *a = Self::oselect(cond, *b, *a);
+                *b = Self::oselect(cond, tmp, *b);
             }
 
-            fn oequal(a: $u, b: $u) -> bool {
+            fn oequal(a: Self, b: Self) -> bool {
                 let a = a as $s;
                 let b = b as $s;
                 <$s>::oequal(a, b)
             }
 
-            fn ocompare(a: $u, b: $u) -> i8 {
+            fn ocompare(a: Self, b: Self) -> i8 {
                 let a = a as $s;
                 let b = b as $s;
                 <$s>::ocompare(a, b)
+            }
+
+            fn omin(a: Self, b: Self) -> Self {
+                let cmp = Self::ocompare(a, b);
+                Self::oselect(i8::oequal(cmp, -1), a, b)
             }
         }
     };
@@ -258,5 +283,26 @@ mod tests {
         let mut b = 4;
         u64::oswap(true, &mut a, &mut b);
         assert_eq!((a, b), (4, 5));
+    }
+
+    #[test]
+    fn test_omin() {
+        assert_eq!(i8::omin(1, 2), 1);
+        assert_eq!(i8::omin(2, 1), 1);
+        assert_eq!(i16::omin(1, 2), 1);
+        assert_eq!(i16::omin(2, 1), 1);
+        assert_eq!(i32::omin(1, 2), 1);
+        assert_eq!(i32::omin(2, 1), 1);
+        assert_eq!(i64::omin(1, 2), 1);
+        assert_eq!(i64::omin(2, 1), 1);
+
+        assert_eq!(u8::omin(1, 2), 1);
+        assert_eq!(u8::omin(2, 1), 1);
+        assert_eq!(u16::omin(1, 2), 1);
+        assert_eq!(u16::omin(2, 1), 1);
+        assert_eq!(u32::omin(1, 2), 1);
+        assert_eq!(u32::omin(2, 1), 1);
+        assert_eq!(u64::omin(1, 2), 1);
+        assert_eq!(u64::omin(2, 1), 1);
     }
 }
