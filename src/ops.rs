@@ -7,6 +7,24 @@ pub trait ObliviousOps {
     fn omax(a: Self, b: Self) -> Self;
 }
 
+#[link(name = "ops", kind = "static")]
+extern "C" {
+    fn select_8(cond: bool, a: i8, b: i8) -> i8;
+    fn select_16(cond: bool, a: i16, b: i16) -> i16;
+    fn select_32(cond: bool, a: i32, b: i32) -> i32;
+    fn select_64(cond: bool, a: i64, b: i64) -> i64;
+
+    fn equal_8(a: i8, b: i8) -> bool;
+    fn equal_16(a: i16, b: i16) -> bool;
+    fn equal_32(a: i32, b: i32) -> bool;
+    fn equal_64(a: i64, b: i64) -> bool;
+
+    fn compare_8(a: i8, b: i8) -> i8;
+    fn compare_16(a: i16, b: i16) -> i8;
+    fn compare_32(a: i32, b: i32) -> i8;
+    fn compare_64(a: i64, b: i64) -> i8;
+}
+
 macro_rules! impl_oswap {
     () => {
         fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
@@ -35,97 +53,28 @@ macro_rules! impl_omax {
     };
 }
 
-#[link(name = "ops", kind = "static")]
-extern "C" {
-    fn select_8(cond: bool, a: i8, b: i8) -> i8;
-    fn select_16(cond: bool, a: i16, b: i16) -> i16;
-    fn select_32(cond: bool, a: i32, b: i32) -> i32;
-    fn select_64(cond: bool, a: i64, b: i64) -> i64;
+macro_rules! impl_signed_ops {
+    ($t: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
+        impl ObliviousOps for $t {
+            fn oselect(cond: bool, a: Self, b: Self) -> Self {
+                unsafe { $select_fn(cond, a, b) }
+            }
 
-    fn equal_8(a: i8, b: i8) -> bool;
-    fn equal_16(a: i16, b: i16) -> bool;
-    fn equal_32(a: i32, b: i32) -> bool;
-    fn equal_64(a: i64, b: i64) -> bool;
+            fn oequal(a: Self, b: Self) -> bool {
+                unsafe { $equal_fn(a, b) }
+            }
 
-    fn compare_8(a: i8, b: i8) -> i8;
-    fn compare_16(a: i16, b: i16) -> i8;
-    fn compare_32(a: i32, b: i32) -> i8;
-    fn compare_64(a: i64, b: i64) -> i8;
+            fn ocompare(a: Self, b: Self) -> i8 {
+                unsafe { $compare_fn(a, b) }
+            }
+            impl_oswap!();
+            impl_omin!();
+            impl_omax!();
+        }
+    };
 }
 
-impl ObliviousOps for i8 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_8(cond, a, b) }
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_8(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_8(a, b) }
-    }
-
-    impl_oswap!();
-    impl_omin!();
-    impl_omax!();
-}
-
-impl ObliviousOps for i16 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_16(cond, a, b) }
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_16(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_16(a, b) }
-    }
-
-    impl_oswap!();
-    impl_omin!();
-    impl_omax!();
-}
-
-impl ObliviousOps for i32 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_32(cond, a, b) }
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_32(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_32(a, b) }
-    }
-
-    impl_oswap!();
-    impl_omin!();
-    impl_omax!();
-}
-
-impl ObliviousOps for i64 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_64(cond, a, b) }
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_64(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_64(a, b) }
-    }
-
-    impl_oswap!();
-    impl_omin!();
-    impl_omax!();
-}
-
-macro_rules! impl_unsigned {
+macro_rules! impl_unsigned_ops {
     ($u: ty, $s: ty) => {
         impl ObliviousOps for $u {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
@@ -153,12 +102,23 @@ macro_rules! impl_unsigned {
     };
 }
 
-impl_unsigned!(u8, i8);
-impl_unsigned!(u16, i16);
-impl_unsigned!(u32, i32);
-impl_unsigned!(u64, i64);
+impl_signed_ops!(i8, select_8, equal_8, compare_8);
+impl_signed_ops!(i16, select_16, equal_16, compare_16);
+impl_signed_ops!(i32, select_32, equal_32, compare_32);
+impl_signed_ops!(i64, select_64, equal_64, compare_64);
+
+impl_unsigned_ops!(u8, i8);
+impl_unsigned_ops!(u16, i16);
+impl_unsigned_ops!(u32, i32);
+impl_unsigned_ops!(u64, i64);
 
 // TODO Add implementation of select for iterators over types that implement
+// impl<I> for ObliviousOps for I
+// where
+// I: Iterator,
+// I::Item: ObliviousOps {
+
+// }
 
 #[cfg(test)]
 mod tests {
@@ -186,7 +146,7 @@ mod tests {
     }
 
     #[test]
-    fn test_eq() {
+    fn test_equal() {
         assert!(i8::oequal(1, 1));
         assert!(!i8::oequal(1, 2));
         assert!(i16::oequal(1, 1));
@@ -279,7 +239,7 @@ mod tests {
     }
 
     #[test]
-    fn test_omin() {
+    fn test_min() {
         assert_eq!(i8::omin(1, 2), 1);
         assert_eq!(i8::omin(2, 1), 1);
         assert_eq!(i16::omin(1, 2), 1);
@@ -300,7 +260,7 @@ mod tests {
     }
 
     #[test]
-    fn test_omax() {
+    fn test_max() {
         assert_eq!(i8::omax(1, 2), 2);
         assert_eq!(i8::omax(2, 1), 2);
         assert_eq!(i16::omax(1, 2), 2);
