@@ -53,7 +53,7 @@ macro_rules! impl_omax {
     };
 }
 
-macro_rules! impl_signed_ops {
+macro_rules! impl_ops {
     ($t: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
         impl ObliviousOps for $t {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
@@ -74,7 +74,7 @@ macro_rules! impl_signed_ops {
     };
 }
 
-macro_rules! impl_unsigned_ops {
+macro_rules! impl_ops_typecast {
     ($u: ty, $s: ty) => {
         impl ObliviousOps for $u {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
@@ -102,15 +102,17 @@ macro_rules! impl_unsigned_ops {
     };
 }
 
-impl_signed_ops!(i8, select_8, equal_8, compare_8);
-impl_signed_ops!(i16, select_16, equal_16, compare_16);
-impl_signed_ops!(i32, select_32, equal_32, compare_32);
-impl_signed_ops!(i64, select_64, equal_64, compare_64);
+impl_ops!(i8, select_8, equal_8, compare_8);
+impl_ops!(i16, select_16, equal_16, compare_16);
+impl_ops!(i32, select_32, equal_32, compare_32);
+impl_ops!(i64, select_64, equal_64, compare_64);
 
-impl_unsigned_ops!(u8, i8);
-impl_unsigned_ops!(u16, i16);
-impl_unsigned_ops!(u32, i32);
-impl_unsigned_ops!(u64, i64);
+impl_ops_typecast!(u8, i8);
+impl_ops_typecast!(u16, i16);
+impl_ops_typecast!(u32, i32);
+impl_ops_typecast!(u64, i64);
+impl_ops_typecast!(isize, i64); // TODO this should be arch dependent.
+impl_ops_typecast!(usize, i64); // TODO this should be arch dependent.
 
 // TODO Add implementation of select for iterators over types that implement
 // impl<I> for ObliviousOps for I
@@ -134,6 +136,8 @@ mod tests {
         assert_eq!(i32::oselect(false, -2, -1), -1);
         assert_eq!(i64::oselect(true, -2, -1), -2);
         assert_eq!(i64::oselect(false, -2, -1), -1);
+        assert_eq!(isize::oselect(true, -2, -1), -2);
+        assert_eq!(isize::oselect(false, -2, -1), -1);
 
         assert_eq!(u8::oselect(true, 2, 1), 2);
         assert_eq!(u8::oselect(false, 2, 1), 1);
@@ -143,6 +147,8 @@ mod tests {
         assert_eq!(u32::oselect(false, 2, 1), 1);
         assert_eq!(u64::oselect(true, 2, 1), 2);
         assert_eq!(u64::oselect(false, 2, 1), 1);
+        assert_eq!(usize::oselect(true, 2, 1), 2);
+        assert_eq!(usize::oselect(false, 2, 1), 1);
     }
 
     #[test]
@@ -155,6 +161,8 @@ mod tests {
         assert!(!i32::oequal(1, 2));
         assert!(i64::oequal(1, 1));
         assert!(!i64::oequal(1, 2));
+        assert!(isize::oequal(1, 1));
+        assert!(!isize::oequal(1, 2));
 
         assert!(u8::oequal(1, 1));
         assert!(!u8::oequal(1, 2));
@@ -164,6 +172,8 @@ mod tests {
         assert!(!u32::oequal(1, 2));
         assert!(u64::oequal(1, 1));
         assert!(!u64::oequal(1, 2));
+        assert!(usize::oequal(1, 1));
+        assert!(!usize::oequal(1, 2));
     }
 
     #[test]
@@ -180,6 +190,9 @@ mod tests {
         assert_eq!(i64::ocompare(4, 3), 1);
         assert_eq!(i64::ocompare(3, 3), 0);
         assert_eq!(i64::ocompare(3, 4), -1);
+        assert_eq!(isize::ocompare(4, 3), 1);
+        assert_eq!(isize::ocompare(3, 3), 0);
+        assert_eq!(isize::ocompare(3, 4), -1);
 
         assert_eq!(u8::ocompare(4, 3), 1);
         assert_eq!(u8::ocompare(3, 3), 0);
@@ -193,6 +206,9 @@ mod tests {
         assert_eq!(u64::ocompare(4, 3), 1);
         assert_eq!(u64::ocompare(3, 3), 0);
         assert_eq!(u64::ocompare(3, 4), -1);
+        assert_eq!(usize::ocompare(4, 3), 1);
+        assert_eq!(usize::ocompare(3, 3), 0);
+        assert_eq!(usize::ocompare(3, 4), -1);
     }
 
     #[test]
@@ -219,6 +235,11 @@ mod tests {
 
         let mut a = 5;
         let mut b = 4;
+        isize::oswap(true, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
+
+        let mut a = 5;
+        let mut b = 4;
         u8::oswap(true, &mut a, &mut b);
         assert_eq!((a, b), (4, 5));
 
@@ -236,6 +257,11 @@ mod tests {
         let mut b = 4;
         u64::oswap(true, &mut a, &mut b);
         assert_eq!((a, b), (4, 5));
+
+        let mut a = 5;
+        let mut b = 4;
+        usize::oswap(true, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
     }
 
     #[test]
@@ -248,6 +274,8 @@ mod tests {
         assert_eq!(i32::omin(2, 1), 1);
         assert_eq!(i64::omin(1, 2), 1);
         assert_eq!(i64::omin(2, 1), 1);
+        assert_eq!(isize::omin(1, 2), 1);
+        assert_eq!(isize::omin(2, 1), 1);
 
         assert_eq!(u8::omin(1, 2), 1);
         assert_eq!(u8::omin(2, 1), 1);
@@ -257,6 +285,8 @@ mod tests {
         assert_eq!(u32::omin(2, 1), 1);
         assert_eq!(u64::omin(1, 2), 1);
         assert_eq!(u64::omin(2, 1), 1);
+        assert_eq!(usize::omin(1, 2), 1);
+        assert_eq!(usize::omin(2, 1), 1);
     }
 
     #[test]
@@ -269,6 +299,8 @@ mod tests {
         assert_eq!(i32::omax(2, 1), 2);
         assert_eq!(i64::omax(1, 2), 2);
         assert_eq!(i64::omax(2, 1), 2);
+        assert_eq!(isize::omax(1, 2), 2);
+        assert_eq!(isize::omax(2, 1), 2);
 
         assert_eq!(u8::omax(1, 2), 2);
         assert_eq!(u8::omax(2, 1), 2);
@@ -278,5 +310,7 @@ mod tests {
         assert_eq!(u32::omax(2, 1), 2);
         assert_eq!(u64::omax(1, 2), 2);
         assert_eq!(u64::omax(2, 1), 2);
+        assert_eq!(usize::omax(1, 2), 2);
+        assert_eq!(usize::omax(2, 1), 2);
     }
 }
