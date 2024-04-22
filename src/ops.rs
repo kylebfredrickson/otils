@@ -25,124 +25,32 @@ extern "C" {
     fn compare_64(a: i64, b: i64) -> i8;
 }
 
-impl ObliviousOps for i8 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_8(cond, a, b) }
-    }
-
-    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
-        let tmp = *a;
-        *a = Self::oselect(cond, *b, *a);
-        *b = Self::oselect(cond, tmp, *b);
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_8(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_8(a, b) }
-    }
-
-    fn omin(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, -1), a, b)
-    }
-
-    fn omax(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, 1), a, b)
-    }
+macro_rules! impl_oswap {
+    () => {
+        fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
+            let tmp = *a;
+            *a = Self::oselect(cond, *b, *a);
+            *b = Self::oselect(cond, tmp, *b);
+        }
+    };
 }
 
-impl ObliviousOps for i16 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_16(cond, a, b) }
-    }
-
-    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
-        let tmp = *a;
-        *a = Self::oselect(cond, *b, *a);
-        *b = Self::oselect(cond, tmp, *b);
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_16(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_16(a, b) }
-    }
-
-    fn omin(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, -1), a, b)
-    }
-
-    fn omax(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, 1), a, b)
-    }
+macro_rules! impl_omin {
+    () => {
+        fn omin(a: Self, b: Self) -> Self {
+            let cmp = Self::ocompare(a, b);
+            Self::oselect(i8::oequal(cmp, -1), a, b)
+        }
+    };
 }
 
-impl ObliviousOps for i32 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_32(cond, a, b) }
-    }
-
-    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
-        let tmp = *a;
-        *a = Self::oselect(cond, *b, *a);
-        *b = Self::oselect(cond, tmp, *b);
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_32(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_32(a, b) }
-    }
-
-    fn omin(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, -1), a, b)
-    }
-
-    fn omax(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, 1), a, b)
-    }
-}
-
-impl ObliviousOps for i64 {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self {
-        unsafe { select_64(cond, a, b) }
-    }
-
-    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
-        let tmp = *a;
-        *a = Self::oselect(cond, *b, *a);
-        *b = Self::oselect(cond, tmp, *b);
-    }
-
-    fn oequal(a: Self, b: Self) -> bool {
-        unsafe { equal_64(a, b) }
-    }
-
-    fn ocompare(a: Self, b: Self) -> i8 {
-        unsafe { compare_64(a, b) }
-    }
-
-    fn omin(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, -1), a, b)
-    }
-
-    fn omax(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
-        Self::oselect(i8::oequal(cmp, 1), a, b)
-    }
+macro_rules! impl_omax {
+    () => {
+        fn omax(a: Self, b: Self) -> Self {
+            let cmp = Self::ocompare(a, b);
+            Self::oselect(i8::oequal(cmp, 1), a, b)
+        }
+    };
 }
 
 macro_rules! impl_unsigned {
@@ -152,12 +60,6 @@ macro_rules! impl_unsigned {
                 let a = a as $s;
                 let b = b as $s;
                 <$s>::oselect(cond, a, b) as Self
-            }
-
-            fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
-                let tmp = *a;
-                *a = Self::oselect(cond, *b, *a);
-                *b = Self::oselect(cond, tmp, *b);
             }
 
             fn oequal(a: Self, b: Self) -> bool {
@@ -172,17 +74,83 @@ macro_rules! impl_unsigned {
                 <$s>::ocompare(a, b)
             }
 
-            fn omin(a: Self, b: Self) -> Self {
-                let cmp = Self::ocompare(a, b);
-                Self::oselect(i8::oequal(cmp, -1), a, b)
-            }
-
-            fn omax(a: Self, b: Self) -> Self {
-                let cmp = Self::ocompare(a, b);
-                Self::oselect(i8::oequal(cmp, 1), a, b)
-            }
+            impl_oswap!();
+            impl_omin!();
+            impl_omax!();
         }
     };
+}
+
+impl ObliviousOps for i8 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
+        unsafe { select_8(cond, a, b) }
+    }
+
+    fn oequal(a: Self, b: Self) -> bool {
+        unsafe { equal_8(a, b) }
+    }
+
+    fn ocompare(a: Self, b: Self) -> i8 {
+        unsafe { compare_8(a, b) }
+    }
+
+    impl_oswap!();
+    impl_omin!();
+    impl_omax!();
+}
+
+impl ObliviousOps for i16 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
+        unsafe { select_16(cond, a, b) }
+    }
+
+    fn oequal(a: Self, b: Self) -> bool {
+        unsafe { equal_16(a, b) }
+    }
+
+    fn ocompare(a: Self, b: Self) -> i8 {
+        unsafe { compare_16(a, b) }
+    }
+
+    impl_oswap!();
+    impl_omin!();
+    impl_omax!();
+}
+
+impl ObliviousOps for i32 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
+        unsafe { select_32(cond, a, b) }
+    }
+
+    fn oequal(a: Self, b: Self) -> bool {
+        unsafe { equal_32(a, b) }
+    }
+
+    fn ocompare(a: Self, b: Self) -> i8 {
+        unsafe { compare_32(a, b) }
+    }
+
+    impl_oswap!();
+    impl_omin!();
+    impl_omax!();
+}
+
+impl ObliviousOps for i64 {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
+        unsafe { select_64(cond, a, b) }
+    }
+
+    fn oequal(a: Self, b: Self) -> bool {
+        unsafe { equal_64(a, b) }
+    }
+
+    fn ocompare(a: Self, b: Self) -> i8 {
+        unsafe { compare_64(a, b) }
+    }
+
+    impl_oswap!();
+    impl_omin!();
+    impl_omax!();
 }
 
 impl_unsigned!(u8, i8);
