@@ -60,10 +60,10 @@ macro_rules! impl_omax {
 // etc.) and 2) I was unsure if the Rust workarounds would actually be constant
 // time (e.g., wrapping_sub, try_into, etc.).
 macro_rules! impl_ops {
-    ($from: ty, $into: ty, $intoelect_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
+    ($from: ty, $into: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
         impl ObliviousOps for $from {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
-                unsafe { $intoelect_fn(cond, a as $into, b as $into) as Self }
+                unsafe { $select_fn(cond, a as $into, b as $into) as Self }
             }
 
             fn oequal(a: Self, b: Self) -> bool {

@@ -1,3 +1,3 @@
 fn main() {
-    cc::Build::new().file("src/ops.c").compile("ops");
+    cc::Build::new().file("src/ops/ops.c").compile("ops");
 }
