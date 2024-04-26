@@ -5,4 +5,4 @@ helpful for developing applications that are resistant to side-channel attacks
 in trusted execution environments (TEEs), e.g., Intel SGX.
 
 ## TODO
-- [ ] Add implementation of select for iterators over types that implement ObliviousOps.
+- ~~[ ] Add implementation of select for iterators over types that implement ObliviousOps.~~

@@ -1,43 +1,43 @@
-// pub fn sort<T: std::cmp::PartialOrd>(list: &mut [T]) {
-//     bitonic_sort(list, true);
-// }
+use crate::ops::ObliviousOps;
 
-// // Implements bitonic sort.
-// fn bitonic_sort<T: std::cmp::PartialOrd>(list: &mut [T], b: bool) {
-//     if list.len() > 1 {
-//         let middle = list.len() / 2;
-//         bitonic_sort(&mut list[0..middle], b);
-//         bitonic_sort(&mut list[middle..], !b);
-//         bitonic_merge(list, b);
-//     }
-// }
+pub fn sort<T: ObliviousOps>(list: &mut [T]) {
+    bitonic_sort(list, 1);
+}
 
-// fn bitonic_merge<T: std::cmp::PartialOrd>(list: &mut [T], b: bool) {
-//     if list.len() > 1 {
-//         let m = 1 << list.len().ilog(2);
-//         for i in 0..(list.len() - m) {
-//             // cmp_swap(&mut list[m], &mut list.split_at_mut(), b)
-//         }
-//     }
-// }
+// Implements bitonic sort.
+fn bitonic_sort<T: ObliviousOps>(list: &mut [T], up: i8) {
+    if list.len() > 1 {
+        let (first_half, second_half) = list.split_at_mut(list.len() / 2);
+        bitonic_sort(first_half, up);
+        bitonic_sort(second_half, -up);
+        bitonic_merge(first_half, second_half, up);
+    }
+}
 
-// fn swap<T: std::cmp::PartialOrd>(a: &mut T, b: &mut T, swap: bool) {
-//     todo!();
-// }
+fn bitonic_merge<T: ObliviousOps>(first_half: &mut [T], second_half: &mut [T], up: i8) {
+    if first_half.len() >= 1 && second_half.len() >= 1 {
+        for i in 0..first_half.len() {
+            T::osort(up, &mut first_half[i], &mut second_half[i]);
+        }
+        let (first_quarter, second_quarter) = first_half.split_at_mut(first_half.len() / 2);
+        let (third_quarter, fourth_quarter) = second_half.split_at_mut(second_half.len() / 2);
+        bitonic_merge(first_quarter, second_quarter, up);
+        bitonic_merge(third_quarter, fourth_quarter, up);
+    }
+}
 
-// pub fn compact<T>(list: &mut [T], pred: impl Fn(&T) -> bool) {}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-// pub fn cmp<T>(a: T, b: T) -> i8
-// where
-//     T: std::ops::Sub + std::ops::Shr,
-// {
-//     use std::mem;
+    fn is_sorted<T: Ord>(slice: &[T]) -> bool {
+        slice.windows(2).all(|w| w[0] <= w[1])
+    }
 
-//     let bit_length = 8 * mem::size_of::<T>();
-//     -((a - b) >> bit_length - 1) + ((b - a) >> bit_length - 1)
-// }
-
-// TODO is this really the best way to do this? it feels ugly. i'd like to be
-// able to have these optimized implementations for particular types and then a
-// generic implementation if there is not already a better one, by interpreting
-// everything as bytes and then doing the arithmetic per byte.
+    #[test]
+    fn test_sort() {
+        let mut a: [i64; 4] = [3, 1, 2, 4];
+        sort(&mut a[..]);
+        assert!(is_sorted(&a));
+    }
+}
