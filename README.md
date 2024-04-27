@@ -16,8 +16,8 @@ operations have **not** been verified.
 ### ObliviousOps
 This trait enables users to define traits that can be obliviously operated on.
 Types must implement only three functions obliviously.
-- `oselect({0, 1}: i8, a: Self, b: Self) -> Self` On input 0 will return the
-value of `a`. On input 1 will return `b`.
+- `oselect({0, 1}: i8, a: Self, b: Self) -> Self` On input 1 will return the
+value of `a`. On input 0 will return `b`.
 - `oequal(a: Self, b: Self) -> {0, 1}: i8` Tests equality. If `a == b -> 1` and
 `a != b -> 0`.
 - `ocompare(a: Self, b: Self) -> {-1, 0, 1}: i8` Compares inputs. `a > b -> 1`,
