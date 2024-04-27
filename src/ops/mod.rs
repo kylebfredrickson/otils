@@ -1,10 +1,26 @@
 pub trait ObliviousOps: Copy {
-    fn oselect(cond: bool, a: Self, b: Self) -> Self;
-    fn oequal(a: Self, b: Self) -> bool;
+    fn oselect(cond: i8, a: Self, b: Self) -> Self;
+    fn oequal(a: Self, b: Self) -> i8;
     fn ocompare(a: Self, b: Self) -> i8;
 
+    fn ogreater(a: Self, b: Self) -> i8 {
+        i8::oequal(Self::ocompare(a, b), 1)
+    }
+
+    fn ogreater_equal(a: Self, b: Self) -> i8 {
+        Self::ogreater(a, b) | Self::oequal(a, b)
+    }
+
+    fn olesser(a: Self, b: Self) -> i8 {
+        i8::oequal(Self::ocompare(a, b), -1)
+    }
+
+    fn olesser_equal(a: Self, b: Self) -> i8 {
+        Self::olesser(a, b) | Self::oequal(a, b)
+    }
+
     // This requires that Self implements the copy trait.
-    fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
+    fn oswap(cond: i8, a: &mut Self, b: &mut Self) {
         let tmp = *a;
         *a = Self::oselect(cond, *b, *a);
         *b = Self::oselect(cond, tmp, *b);
@@ -16,14 +32,6 @@ pub trait ObliviousOps: Copy {
         let cmp = Self::ocompare(*a, *b);
         Self::oswap(i8::oequal(cmp, cond), a, b);
     }
-
-    // fn osort_ascending(a: &mut Self, b: &mut Self) {
-    //     Self::osort(1, a, b);
-    // }
-
-    // fn osort_descending(a: &mut Self, b: &mut Self) {
-    //     Self::osort(-1, a, b);
-    // }
 
     fn omin(a: Self, b: Self) -> Self {
         let cmp = Self::ocompare(a, b);
@@ -38,15 +46,15 @@ pub trait ObliviousOps: Copy {
 
 #[link(name = "ops", kind = "static")]
 extern "C" {
-    fn select_8(cond: bool, a: i8, b: i8) -> i8;
-    fn select_16(cond: bool, a: i16, b: i16) -> i16;
-    fn select_32(cond: bool, a: i32, b: i32) -> i32;
-    fn select_64(cond: bool, a: i64, b: i64) -> i64;
+    fn select_8(cond: i8, a: i8, b: i8) -> i8;
+    fn select_16(cond: i8, a: i16, b: i16) -> i16;
+    fn select_32(cond: i8, a: i32, b: i32) -> i32;
+    fn select_64(cond: i8, a: i64, b: i64) -> i64;
 
-    fn equal_8(a: i8, b: i8) -> bool;
-    fn equal_16(a: i16, b: i16) -> bool;
-    fn equal_32(a: i32, b: i32) -> bool;
-    fn equal_64(a: i64, b: i64) -> bool;
+    fn equal_8(a: i8, b: i8) -> i8;
+    fn equal_16(a: i16, b: i16) -> i8;
+    fn equal_32(a: i32, b: i32) -> i8;
+    fn equal_64(a: i64, b: i64) -> i8;
 
     fn compare_8(a: i8, b: i8) -> i8;
     fn compare_16(a: i16, b: i16) -> i8;
@@ -62,11 +70,11 @@ extern "C" {
 macro_rules! impl_ops {
     ($from: ty, $into: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
         impl ObliviousOps for $from {
-            fn oselect(cond: bool, a: Self, b: Self) -> Self {
+            fn oselect(cond: i8, a: Self, b: Self) -> Self {
                 unsafe { $select_fn(cond, a as $into, b as $into) as Self }
             }
 
-            fn oequal(a: Self, b: Self) -> bool {
+            fn oequal(a: Self, b: Self) -> i8 {
                 unsafe { $equal_fn(a as $into, b as $into) }
             }
 
@@ -94,52 +102,52 @@ mod tests {
 
     #[test]
     fn test_select() {
-        assert_eq!(i8::oselect(true, -2, -1), -2);
-        assert_eq!(i8::oselect(false, -2, -1), -1);
-        assert_eq!(i16::oselect(true, -2, -1), -2);
-        assert_eq!(i16::oselect(false, -2, -1), -1);
-        assert_eq!(i32::oselect(true, -2, -1), -2);
-        assert_eq!(i32::oselect(false, -2, -1), -1);
-        assert_eq!(i64::oselect(true, -2, -1), -2);
-        assert_eq!(i64::oselect(false, -2, -1), -1);
-        assert_eq!(isize::oselect(true, -2, -1), -2);
-        assert_eq!(isize::oselect(false, -2, -1), -1);
+        assert_eq!(i8::oselect(1, -2, -1), -2);
+        assert_eq!(i8::oselect(0, -2, -1), -1);
+        assert_eq!(i16::oselect(1, -2, -1), -2);
+        assert_eq!(i16::oselect(0, -2, -1), -1);
+        assert_eq!(i32::oselect(1, -2, -1), -2);
+        assert_eq!(i32::oselect(0, -2, -1), -1);
+        assert_eq!(i64::oselect(1, -2, -1), -2);
+        assert_eq!(i64::oselect(0, -2, -1), -1);
+        assert_eq!(isize::oselect(1, -2, -1), -2);
+        assert_eq!(isize::oselect(0, -2, -1), -1);
 
-        assert_eq!(u8::oselect(true, 2, 1), 2);
-        assert_eq!(u8::oselect(false, 2, 1), 1);
-        assert_eq!(u16::oselect(true, 2, 1), 2);
-        assert_eq!(u16::oselect(false, 2, 1), 1);
-        assert_eq!(u32::oselect(true, 2, 1), 2);
-        assert_eq!(u32::oselect(false, 2, 1), 1);
-        assert_eq!(u64::oselect(true, 2, 1), 2);
-        assert_eq!(u64::oselect(false, 2, 1), 1);
-        assert_eq!(usize::oselect(true, 2, 1), 2);
-        assert_eq!(usize::oselect(false, 2, 1), 1);
+        assert_eq!(u8::oselect(1, 2, 1), 2);
+        assert_eq!(u8::oselect(0, 2, 1), 1);
+        assert_eq!(u16::oselect(1, 2, 1), 2);
+        assert_eq!(u16::oselect(0, 2, 1), 1);
+        assert_eq!(u32::oselect(1, 2, 1), 2);
+        assert_eq!(u32::oselect(0, 2, 1), 1);
+        assert_eq!(u64::oselect(1, 2, 1), 2);
+        assert_eq!(u64::oselect(0, 2, 1), 1);
+        assert_eq!(usize::oselect(1, 2, 1), 2);
+        assert_eq!(usize::oselect(0, 2, 1), 1);
     }
 
     #[test]
     fn test_equal() {
-        assert!(i8::oequal(1, 1));
-        assert!(!i8::oequal(1, 2));
-        assert!(i16::oequal(1, 1));
-        assert!(!i16::oequal(1, 2));
-        assert!(i32::oequal(1, 1));
-        assert!(!i32::oequal(1, 2));
-        assert!(i64::oequal(1, 1));
-        assert!(!i64::oequal(1, 2));
-        assert!(isize::oequal(1, 1));
-        assert!(!isize::oequal(1, 2));
+        assert!(i8::oequal(1, 1) == 1);
+        assert!(i8::oequal(1, 2) == 0);
+        assert!(i16::oequal(1, 1) == 1);
+        assert!(i16::oequal(1, 2) == 0);
+        assert!(i32::oequal(1, 1) == 1);
+        assert!(i32::oequal(1, 2) == 0);
+        assert!(i64::oequal(1, 1) == 1);
+        assert!(i64::oequal(1, 2) == 0);
+        assert!(isize::oequal(1, 1) == 1);
+        assert!(isize::oequal(1, 2) == 0);
 
-        assert!(u8::oequal(1, 1));
-        assert!(!u8::oequal(1, 2));
-        assert!(u16::oequal(1, 1));
-        assert!(!u16::oequal(1, 2));
-        assert!(u32::oequal(1, 1));
-        assert!(!u32::oequal(1, 2));
-        assert!(u64::oequal(1, 1));
-        assert!(!u64::oequal(1, 2));
-        assert!(usize::oequal(1, 1));
-        assert!(!usize::oequal(1, 2));
+        assert!(u8::oequal(1, 1) == 1);
+        assert!(u8::oequal(1, 2) == 0);
+        assert!(u16::oequal(1, 1) == 1);
+        assert!(u16::oequal(1, 2) == 0);
+        assert!(u32::oequal(1, 1) == 1);
+        assert!(u32::oequal(1, 2) == 0);
+        assert!(u64::oequal(1, 1) == 1);
+        assert!(u64::oequal(1, 2) == 0);
+        assert!(usize::oequal(1, 1) == 1);
+        assert!(usize::oequal(1, 2) == 0);
     }
 
     #[test]
@@ -279,4 +287,18 @@ mod tests {
     //     assert_eq!(usize::omax(1, 2), 2);
     //     assert_eq!(usize::omax(2, 1), 2);
     // }
+
+    #[test]
+    fn test_greater() {
+        assert_eq!(i8::ogreater(1, 1), 0);
+        assert_eq!(i8::ogreater(2, 1), 1);
+        assert_eq!(i8::ogreater(1, 2), 0);
+    }
+
+    #[test]
+    fn test_greater_equal() {
+        assert_eq!(i8::ogreater_equal(1, 1), 1);
+        assert_eq!(i8::ogreater_equal(2, 1), 1);
+        assert_eq!(i8::ogreater_equal(1, 2), 0);
+    }
 }

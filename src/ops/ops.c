@@ -1,42 +1,41 @@
-#include <stdbool.h>
 #include <stdint.h>
 
-int8_t select_8(bool cond, int8_t a, int8_t b)
+int8_t select_8(int8_t cond, int8_t a, int8_t b)
 {
     return (~(cond - 1) & a) | ((cond - 1) & b);
 }
 
-int16_t select_16(bool cond, int16_t a, int16_t b)
+int16_t select_16(int8_t cond, int16_t a, int16_t b)
 {
     return (~(cond - 1) & a) | ((cond - 1) & b);
 }
 
-int32_t select_32(bool cond, int32_t a, int32_t b)
+int32_t select_32(int8_t cond, int32_t a, int32_t b)
 {
     return (~(cond - 1) & a) | ((cond - 1) & b);
 }
 
-int64_t select_64(bool cond, int64_t a, int64_t b)
+int64_t select_64(int8_t cond, int64_t a, int64_t b)
 {
     return (~(cond - 1) & a) | ((cond - 1) & b);
 }
 
-bool equal_8(int8_t a, int8_t b)
+int8_t equal_8(int8_t a, int8_t b)
 {
     return !(a ^ b);
 }
 
-bool equal_16(int16_t a, int16_t b)
+int8_t equal_16(int16_t a, int16_t b)
 {
     return !(a ^ b);
 }
 
-bool equal_32(int32_t a, int32_t b)
+int8_t equal_32(int32_t a, int32_t b)
 {
     return !(a ^ b);
 }
 
-bool equal_64(int64_t a, int64_t b)
+int8_t equal_64(int64_t a, int64_t b)
 {
     return !(a ^ b);
 }
