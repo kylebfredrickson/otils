@@ -1,10 +1,10 @@
 use crate::ops::ObliviousOps;
 
-pub fn ocompact(data: &mut [u64], bits: &mut [usize]) {
+pub fn ocompact<T: ObliviousOps>(data: &mut [T], bits: &mut [usize]) {
     or_compact(data, bits);
 }
 
-fn or_compact(data: &mut [u64], bits: &mut [usize]) {
+fn or_compact<T: ObliviousOps>(data: &mut [T], bits: &mut [usize]) {
     let n = data.len();
     if n > 0 {
         let n1: usize = 1 << usize::ilog2(data.len());
@@ -16,7 +16,7 @@ fn or_compact(data: &mut [u64], bits: &mut [usize]) {
         or_compact(first_data, first_bits);
         or_off_compact(second_data, second_bits, n1 - n2 + m);
         for i in 0..n2 {
-            u64::oswap(
+            T::oswap(
                 usize::ogreater_equal(i, m),
                 &mut first_data[i],
                 &mut second_data[n1 - n2 + i],

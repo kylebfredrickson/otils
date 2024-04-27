@@ -7,12 +7,12 @@ pub trait ObliviousOps: Copy {
         i8::oequal(Self::ocompare(a, b), 1)
     }
 
-    fn ogreater_equal(a: Self, b: Self) -> i8 {
-        Self::ogreater(a, b) | Self::oequal(a, b)
-    }
-
     fn olesser(a: Self, b: Self) -> i8 {
         i8::oequal(Self::ocompare(a, b), -1)
+    }
+
+    fn ogreater_equal(a: Self, b: Self) -> i8 {
+        Self::ogreater(a, b) | Self::oequal(a, b)
     }
 
     fn olesser_equal(a: Self, b: Self) -> i8 {
