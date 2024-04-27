@@ -185,108 +185,108 @@ mod tests {
         assert_eq!(usize::ocompare(3, 4), -1);
     }
 
-    // #[test]
-    // fn test_swap() {
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     i8::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+    #[test]
+    fn test_swap() {
+        let mut a = 5;
+        let mut b = 4;
+        i8::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     i16::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        i16::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     i32::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        i32::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     i64::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        i64::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     isize::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        isize::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     u8::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        u8::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     u16::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        u16::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     u32::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        u32::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     u64::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
+        let mut a = 5;
+        let mut b = 4;
+        u64::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
 
-    //     let mut a = 5;
-    //     let mut b = 4;
-    //     usize::oswap(true, &mut a, &mut b);
-    //     assert_eq!((a, b), (4, 5));
-    // }
+        let mut a = 5;
+        let mut b = 4;
+        usize::oswap(1, &mut a, &mut b);
+        assert_eq!((a, b), (4, 5));
+    }
 
-    // #[test]
-    // fn test_min() {
-    //     assert_eq!(i8::omin(1, 2), 1);
-    //     assert_eq!(i8::omin(2, 1), 1);
-    //     assert_eq!(i16::omin(1, 2), 1);
-    //     assert_eq!(i16::omin(2, 1), 1);
-    //     assert_eq!(i32::omin(1, 2), 1);
-    //     assert_eq!(i32::omin(2, 1), 1);
-    //     assert_eq!(i64::omin(1, 2), 1);
-    //     assert_eq!(i64::omin(2, 1), 1);
-    //     assert_eq!(isize::omin(1, 2), 1);
-    //     assert_eq!(isize::omin(2, 1), 1);
+    #[test]
+    fn test_min() {
+        assert_eq!(i8::omin(1, 2), 1);
+        assert_eq!(i8::omin(2, 1), 1);
+        assert_eq!(i16::omin(1, 2), 1);
+        assert_eq!(i16::omin(2, 1), 1);
+        assert_eq!(i32::omin(1, 2), 1);
+        assert_eq!(i32::omin(2, 1), 1);
+        assert_eq!(i64::omin(1, 2), 1);
+        assert_eq!(i64::omin(2, 1), 1);
+        assert_eq!(isize::omin(1, 2), 1);
+        assert_eq!(isize::omin(2, 1), 1);
 
-    //     assert_eq!(u8::omin(1, 2), 1);
-    //     assert_eq!(u8::omin(2, 1), 1);
-    //     assert_eq!(u16::omin(1, 2), 1);
-    //     assert_eq!(u16::omin(2, 1), 1);
-    //     assert_eq!(u32::omin(1, 2), 1);
-    //     assert_eq!(u32::omin(2, 1), 1);
-    //     assert_eq!(u64::omin(1, 2), 1);
-    //     assert_eq!(u64::omin(2, 1), 1);
-    //     assert_eq!(usize::omin(1, 2), 1);
-    //     assert_eq!(usize::omin(2, 1), 1);
-    // }
+        assert_eq!(u8::omin(1, 2), 1);
+        assert_eq!(u8::omin(2, 1), 1);
+        assert_eq!(u16::omin(1, 2), 1);
+        assert_eq!(u16::omin(2, 1), 1);
+        assert_eq!(u32::omin(1, 2), 1);
+        assert_eq!(u32::omin(2, 1), 1);
+        assert_eq!(u64::omin(1, 2), 1);
+        assert_eq!(u64::omin(2, 1), 1);
+        assert_eq!(usize::omin(1, 2), 1);
+        assert_eq!(usize::omin(2, 1), 1);
+    }
 
-    // #[test]
-    // fn test_max() {
-    //     assert_eq!(i8::omax(1, 2), 2);
-    //     assert_eq!(i8::omax(2, 1), 2);
-    //     assert_eq!(i16::omax(1, 2), 2);
-    //     assert_eq!(i16::omax(2, 1), 2);
-    //     assert_eq!(i32::omax(1, 2), 2);
-    //     assert_eq!(i32::omax(2, 1), 2);
-    //     assert_eq!(i64::omax(1, 2), 2);
-    //     assert_eq!(i64::omax(2, 1), 2);
-    //     assert_eq!(isize::omax(1, 2), 2);
-    //     assert_eq!(isize::omax(2, 1), 2);
+    #[test]
+    fn test_max() {
+        assert_eq!(i8::omax(1, 2), 2);
+        assert_eq!(i8::omax(2, 1), 2);
+        assert_eq!(i16::omax(1, 2), 2);
+        assert_eq!(i16::omax(2, 1), 2);
+        assert_eq!(i32::omax(1, 2), 2);
+        assert_eq!(i32::omax(2, 1), 2);
+        assert_eq!(i64::omax(1, 2), 2);
+        assert_eq!(i64::omax(2, 1), 2);
+        assert_eq!(isize::omax(1, 2), 2);
+        assert_eq!(isize::omax(2, 1), 2);
 
-    //     assert_eq!(u8::omax(1, 2), 2);
-    //     assert_eq!(u8::omax(2, 1), 2);
-    //     assert_eq!(u16::omax(1, 2), 2);
-    //     assert_eq!(u16::omax(2, 1), 2);
-    //     assert_eq!(u32::omax(1, 2), 2);
-    //     assert_eq!(u32::omax(2, 1), 2);
-    //     assert_eq!(u64::omax(1, 2), 2);
-    //     assert_eq!(u64::omax(2, 1), 2);
-    //     assert_eq!(usize::omax(1, 2), 2);
-    //     assert_eq!(usize::omax(2, 1), 2);
-    // }
+        assert_eq!(u8::omax(1, 2), 2);
+        assert_eq!(u8::omax(2, 1), 2);
+        assert_eq!(u16::omax(1, 2), 2);
+        assert_eq!(u16::omax(2, 1), 2);
+        assert_eq!(u32::omax(1, 2), 2);
+        assert_eq!(u32::omax(2, 1), 2);
+        assert_eq!(u64::omax(1, 2), 2);
+        assert_eq!(u64::omax(2, 1), 2);
+        assert_eq!(usize::omax(1, 2), 2);
+        assert_eq!(usize::omax(2, 1), 2);
+    }
 
     #[test]
     fn test_greater() {
