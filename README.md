@@ -14,8 +14,9 @@ operations have **not** been verified.
 ## Features
 
 ### ObliviousOps
-This trait enables users to define traits that can be obliviously operated on.
-Types must implement only three functions obliviously.
+This trait enables users to define custom types that can be obliviously operated
+on. Types must implement only three functions obliviously to gain access to this
+functionality.
 - `oselect({0, 1}: i8, a: Self, b: Self) -> Self` On input 1 will return the
 value of `a`. On input 0 will return `b`.
 - `oequal(a: Self, b: Self) -> {0, 1}: i8` Tests equality. If `a == b -> 1` and
