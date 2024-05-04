@@ -29,10 +29,17 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
+    fn is_sorted<T: Ord>(slice: &[T]) -> bool {
+        slice.windows(2).all(|w| w[0] <= w[1])
+    }
+
     #[bench]
     fn bench_bitonic_sort(b: &mut Bencher) {
-        let size = 1000000;
+        let size = 1048576;
         let mut v: Vec<i32> = (0..size).rev().collect();
+        bitonic_sort(&mut v[..], 1);
+        assert!(is_sorted(&v[..]));
+
         b.iter(|| bitonic_sort(&mut v[..], 0));
     }
 }
