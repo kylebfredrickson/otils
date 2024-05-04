@@ -21,3 +21,18 @@ fn bitonic_merge<T: ObliviousOps>(first_half: &mut [T], second_half: &mut [T], c
         bitonic_merge(third_quarter, fourth_quarter, cond);
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    extern crate test;
+    use test::Bencher;
+
+    #[bench]
+    fn bench_bitonic_sort(b: &mut Bencher) {
+        let size = 1000000;
+        let mut v: Vec<i32> = (0..size).rev().collect();
+        b.iter(|| bitonic_sort(&mut v[..], 0));
+    }
+}
