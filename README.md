@@ -24,6 +24,8 @@ Slices of types implementing `ObliviousOps` can be obliviously sorted. Currently
     - Time: 376,781,487 ns/iter (+/- 8,625,826)
 - `5bf48b2`
     - Time (8 threads): 85,374,883 ns/iter (+/- 13,014,844)
+- `1466391`
+    - Time (8 threads): 77,771,875 ns/iter (+/- 8,628,143)
 
 
 ### Oblivious Compaction
