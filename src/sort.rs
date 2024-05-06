@@ -4,7 +4,7 @@ use std::marker;
 mod bitonic;
 use bitonic::parallel_bitonic_sort;
 
-pub fn osort<T: ObliviousOps + marker::Send>(list: &mut [T], threads: i8) {
+pub fn osort<T: ObliviousOps + marker::Send>(list: &mut [T], threads: u8) {
     parallel_bitonic_sort(list, 1, threads);
 }
 
