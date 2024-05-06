@@ -102,203 +102,275 @@ mod tests {
 
     #[test]
     fn test_select() {
-        assert_eq!(i8::oselect(1, -2, -1), -2);
-        assert_eq!(i8::oselect(0, -2, -1), -1);
-        assert_eq!(i16::oselect(1, -2, -1), -2);
-        assert_eq!(i16::oselect(0, -2, -1), -1);
-        assert_eq!(i32::oselect(1, -2, -1), -2);
-        assert_eq!(i32::oselect(0, -2, -1), -1);
-        assert_eq!(i64::oselect(1, -2, -1), -2);
-        assert_eq!(i64::oselect(0, -2, -1), -1);
-        assert_eq!(isize::oselect(1, -2, -1), -2);
-        assert_eq!(isize::oselect(0, -2, -1), -1);
+        macro_rules! test_select {
+            ($t: ty, $a: expr, $b: expr) => {
+                assert_eq!(<$t>::oselect(1, $a, $b), $a);
+                assert_eq!(<$t>::oselect(0, $a, $b), $b);
+            };
+        }
 
-        assert_eq!(u8::oselect(1, 2, 1), 2);
-        assert_eq!(u8::oselect(0, 2, 1), 1);
-        assert_eq!(u16::oselect(1, 2, 1), 2);
-        assert_eq!(u16::oselect(0, 2, 1), 1);
-        assert_eq!(u32::oselect(1, 2, 1), 2);
-        assert_eq!(u32::oselect(0, 2, 1), 1);
-        assert_eq!(u64::oselect(1, 2, 1), 2);
-        assert_eq!(u64::oselect(0, 2, 1), 1);
-        assert_eq!(usize::oselect(1, 2, 1), 2);
-        assert_eq!(usize::oselect(0, 2, 1), 1);
+        test_select!(i8, -2, 1);
+        test_select!(i16, -2, 1);
+        test_select!(i32, -2, 1);
+        test_select!(i64, -2, 1);
+        test_select!(isize, -2, 1);
+
+        test_select!(u8, 2, 1);
+        test_select!(u16, 2, 1);
+        test_select!(u32, 2, 1);
+        test_select!(u64, 2, 1);
+        test_select!(usize, 2, 1);
     }
 
     #[test]
     fn test_equal() {
-        assert!(i8::oequal(1, 1) == 1);
-        assert!(i8::oequal(1, 2) == 0);
-        assert!(i16::oequal(1, 1) == 1);
-        assert!(i16::oequal(1, 2) == 0);
-        assert!(i32::oequal(1, 1) == 1);
-        assert!(i32::oequal(1, 2) == 0);
-        assert!(i64::oequal(1, 1) == 1);
-        assert!(i64::oequal(1, 2) == 0);
-        assert!(isize::oequal(1, 1) == 1);
-        assert!(isize::oequal(1, 2) == 0);
+        macro_rules! test_equal {
+            ($t: ty, $a: expr, $b: expr) => {
+                assert_eq!(<$t>::oequal($a, $a), 1);
+                assert_eq!(<$t>::oequal($b, $b), 1);
+                assert_eq!(<$t>::oequal($a, $b), 0);
+                assert_eq!(<$t>::oequal($b, $a), 0);
+            };
+        }
 
-        assert!(u8::oequal(1, 1) == 1);
-        assert!(u8::oequal(1, 2) == 0);
-        assert!(u16::oequal(1, 1) == 1);
-        assert!(u16::oequal(1, 2) == 0);
-        assert!(u32::oequal(1, 1) == 1);
-        assert!(u32::oequal(1, 2) == 0);
-        assert!(u64::oequal(1, 1) == 1);
-        assert!(u64::oequal(1, 2) == 0);
-        assert!(usize::oequal(1, 1) == 1);
-        assert!(usize::oequal(1, 2) == 0);
+        test_equal!(i8, -1, 2);
+        test_equal!(i16, -1, 2);
+        test_equal!(i32, -1, 2);
+        test_equal!(i64, -1, 2);
+        test_equal!(isize, -1, 2);
+
+        test_equal!(u8, 1, 2);
+        test_equal!(u16, 1, 2);
+        test_equal!(u32, 1, 2);
+        test_equal!(u64, 1, 2);
+        test_equal!(usize, 1, 2);
     }
 
     #[test]
     fn test_compare() {
-        assert_eq!(i8::ocompare(4, 3), 1);
-        assert_eq!(i8::ocompare(3, 3), 0);
-        assert_eq!(i8::ocompare(3, 4), -1);
-        assert_eq!(i16::ocompare(4, 3), 1);
-        assert_eq!(i16::ocompare(3, 3), 0);
-        assert_eq!(i16::ocompare(3, 4), -1);
-        assert_eq!(i32::ocompare(4, 3), 1);
-        assert_eq!(i32::ocompare(3, 3), 0);
-        assert_eq!(i32::ocompare(3, 4), -1);
-        assert_eq!(i64::ocompare(4, 3), 1);
-        assert_eq!(i64::ocompare(3, 3), 0);
-        assert_eq!(i64::ocompare(3, 4), -1);
-        assert_eq!(isize::ocompare(4, 3), 1);
-        assert_eq!(isize::ocompare(3, 3), 0);
-        assert_eq!(isize::ocompare(3, 4), -1);
+        macro_rules! test_compare {
+            ($t: ty, $great: expr, $less: expr) => {
+                assert_eq!(<$t>::ocompare($great, $less), 1);
+                assert_eq!(<$t>::ocompare($less, $great), -1);
+                assert_eq!(<$t>::ocompare($great, $great), 0);
+                assert_eq!(<$t>::ocompare($less, $less), 0);
+            };
+        }
 
-        assert_eq!(u8::ocompare(4, 3), 1);
-        assert_eq!(u8::ocompare(3, 3), 0);
-        assert_eq!(u8::ocompare(3, 4), -1);
-        assert_eq!(u16::ocompare(4, 3), 1);
-        assert_eq!(u16::ocompare(3, 3), 0);
-        assert_eq!(u16::ocompare(3, 4), -1);
-        assert_eq!(u32::ocompare(4, 3), 1);
-        assert_eq!(u32::ocompare(3, 3), 0);
-        assert_eq!(u32::ocompare(3, 4), -1);
-        assert_eq!(u64::ocompare(4, 3), 1);
-        assert_eq!(u64::ocompare(3, 3), 0);
-        assert_eq!(u64::ocompare(3, 4), -1);
-        assert_eq!(usize::ocompare(4, 3), 1);
-        assert_eq!(usize::ocompare(3, 3), 0);
-        assert_eq!(usize::ocompare(3, 4), -1);
-    }
+        test_compare!(i8, 4, 3);
+        test_compare!(i16, 4, 3);
+        test_compare!(i32, 4, 3);
+        test_compare!(i64, 4, 3);
+        test_compare!(isize, 4, 3);
 
-    #[test]
-    fn test_swap() {
-        let mut a = 5;
-        let mut b = 4;
-        i8::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
+        test_compare!(i8, -3, -4);
+        test_compare!(i16, -3, -4);
+        test_compare!(i32, -3, -4);
+        test_compare!(i64, -3, -4);
+        test_compare!(isize, -3, -4);
 
-        let mut a = 5;
-        let mut b = 4;
-        i16::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        i32::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        i64::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        isize::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        u8::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        u16::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        u32::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        u64::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-
-        let mut a = 5;
-        let mut b = 4;
-        usize::oswap(1, &mut a, &mut b);
-        assert_eq!((a, b), (4, 5));
-    }
-
-    #[test]
-    fn test_min() {
-        assert_eq!(i8::omin(1, 2), 1);
-        assert_eq!(i8::omin(2, 1), 1);
-        assert_eq!(i16::omin(1, 2), 1);
-        assert_eq!(i16::omin(2, 1), 1);
-        assert_eq!(i32::omin(1, 2), 1);
-        assert_eq!(i32::omin(2, 1), 1);
-        assert_eq!(i64::omin(1, 2), 1);
-        assert_eq!(i64::omin(2, 1), 1);
-        assert_eq!(isize::omin(1, 2), 1);
-        assert_eq!(isize::omin(2, 1), 1);
-
-        assert_eq!(u8::omin(1, 2), 1);
-        assert_eq!(u8::omin(2, 1), 1);
-        assert_eq!(u16::omin(1, 2), 1);
-        assert_eq!(u16::omin(2, 1), 1);
-        assert_eq!(u32::omin(1, 2), 1);
-        assert_eq!(u32::omin(2, 1), 1);
-        assert_eq!(u64::omin(1, 2), 1);
-        assert_eq!(u64::omin(2, 1), 1);
-        assert_eq!(usize::omin(1, 2), 1);
-        assert_eq!(usize::omin(2, 1), 1);
-    }
-
-    #[test]
-    fn test_max() {
-        assert_eq!(i8::omax(1, 2), 2);
-        assert_eq!(i8::omax(2, 1), 2);
-        assert_eq!(i16::omax(1, 2), 2);
-        assert_eq!(i16::omax(2, 1), 2);
-        assert_eq!(i32::omax(1, 2), 2);
-        assert_eq!(i32::omax(2, 1), 2);
-        assert_eq!(i64::omax(1, 2), 2);
-        assert_eq!(i64::omax(2, 1), 2);
-        assert_eq!(isize::omax(1, 2), 2);
-        assert_eq!(isize::omax(2, 1), 2);
-
-        assert_eq!(u8::omax(1, 2), 2);
-        assert_eq!(u8::omax(2, 1), 2);
-        assert_eq!(u16::omax(1, 2), 2);
-        assert_eq!(u16::omax(2, 1), 2);
-        assert_eq!(u32::omax(1, 2), 2);
-        assert_eq!(u32::omax(2, 1), 2);
-        assert_eq!(u64::omax(1, 2), 2);
-        assert_eq!(u64::omax(2, 1), 2);
-        assert_eq!(usize::omax(1, 2), 2);
-        assert_eq!(usize::omax(2, 1), 2);
+        test_compare!(u8, 4, 3);
+        test_compare!(u16, 4, 3);
+        test_compare!(u32, 4, 3);
+        test_compare!(u64, 4, 3);
+        test_compare!(usize, 4, 3);
     }
 
     #[test]
     fn test_greater() {
-        assert_eq!(i8::ogreater(1, 1), 0);
-        assert_eq!(i8::ogreater(2, 1), 1);
-        assert_eq!(i8::ogreater(1, 2), 0);
+        macro_rules! test_greater {
+            ($t: ty, $great: expr, $less: expr) => {
+                assert_eq!(<$t>::ogreater($great, $less), 1);
+                assert_eq!(<$t>::ogreater($less, $great), 0);
+                assert_eq!(<$t>::ogreater($great, $great), 0);
+                assert_eq!(<$t>::ogreater($less, $less), 0);
+            };
+        }
+
+        test_greater!(i8, -2, -3);
+        test_greater!(i16, -2, -3);
+        test_greater!(i32, -2, -3);
+        test_greater!(i64, -2, -3);
+        test_greater!(isize, -2, -3);
+
+        test_greater!(u8, 2, 1);
+        test_greater!(u16, 2, 1);
+        test_greater!(u32, 2, 1);
+        test_greater!(u64, 2, 1);
+        test_greater!(usize, 2, 1);
+    }
+
+    #[test]
+    fn test_lesser() {
+        macro_rules! test_lesser {
+            ($t: ty, $great: expr, $less: expr) => {
+                assert_eq!(<$t>::olesser($great, $less), 0);
+                assert_eq!(<$t>::olesser($less, $great), 1);
+                assert_eq!(<$t>::olesser($great, $great), 0);
+                assert_eq!(<$t>::olesser($less, $less), 0);
+            };
+        }
+
+        test_lesser!(i8, -2, -3);
+        test_lesser!(i16, -2, -3);
+        test_lesser!(i32, -2, -3);
+        test_lesser!(i64, -2, -3);
+        test_lesser!(isize, -2, -3);
+
+        test_lesser!(u8, 2, 1);
+        test_lesser!(u16, 2, 1);
+        test_lesser!(u32, 2, 1);
+        test_lesser!(u64, 2, 1);
+        test_lesser!(usize, 2, 1);
     }
 
     #[test]
     fn test_greater_equal() {
-        assert_eq!(i8::ogreater_equal(1, 1), 1);
-        assert_eq!(i8::ogreater_equal(2, 1), 1);
-        assert_eq!(i8::ogreater_equal(1, 2), 0);
+        macro_rules! test_greater_equal {
+            ($t: ty, $great: expr, $less: expr) => {
+                assert_eq!(<$t>::ogreater_equal($great, $less), 1);
+                assert_eq!(<$t>::ogreater_equal($less, $great), 0);
+                assert_eq!(<$t>::ogreater_equal($great, $great), 1);
+                assert_eq!(<$t>::ogreater_equal($less, $less), 1);
+            };
+        }
+
+        test_greater_equal!(i8, -2, -3);
+        test_greater_equal!(i16, -2, -3);
+        test_greater_equal!(i32, -2, -3);
+        test_greater_equal!(i64, -2, -3);
+        test_greater_equal!(isize, -2, -3);
+
+        test_greater_equal!(u8, 2, 1);
+        test_greater_equal!(u16, 2, 1);
+        test_greater_equal!(u32, 2, 1);
+        test_greater_equal!(u64, 2, 1);
+        test_greater_equal!(usize, 2, 1);
+    }
+
+    #[test]
+    fn test_lesser_equal() {
+        macro_rules! test_lesser_equal {
+            ($t: ty, $great: expr, $less: expr) => {
+                assert_eq!(<$t>::olesser_equal($great, $less), 0);
+                assert_eq!(<$t>::olesser_equal($less, $great), 1);
+                assert_eq!(<$t>::olesser_equal($great, $great), 1);
+                assert_eq!(<$t>::olesser_equal($less, $less), 1);
+            };
+        }
+
+        test_lesser_equal!(i8, -2, -3);
+        test_lesser_equal!(i16, -2, -3);
+        test_lesser_equal!(i32, -2, -3);
+        test_lesser_equal!(i64, -2, -3);
+        test_lesser_equal!(isize, -2, -3);
+
+        test_lesser_equal!(u8, 2, 1);
+        test_lesser_equal!(u16, 2, 1);
+        test_lesser_equal!(u32, 2, 1);
+        test_lesser_equal!(u64, 2, 1);
+        test_lesser_equal!(usize, 2, 1);
+    }
+
+    #[test]
+    fn test_swap() {
+        macro_rules! test_swap {
+            ($t: ty, $a: expr, $b: expr) => {
+                let mut a = $a;
+                let mut b = $b;
+                <$t>::oswap(1, &mut a, &mut b);
+                assert_eq!((a, b), ($b, $a));
+            };
+        }
+
+        test_swap!(i8, -5, 4);
+        test_swap!(i16, -5, 4);
+        test_swap!(i32, -5, 4);
+        test_swap!(i64, -5, 4);
+        test_swap!(isize, -5, 4);
+
+        test_swap!(u8, 5, 4);
+        test_swap!(u16, 5, 4);
+        test_swap!(u32, 5, 4);
+        test_swap!(u64, 5, 4);
+        test_swap!(usize, 5, 4);
+    }
+
+    #[test]
+    fn test_sort() {
+        macro_rules! test_sort {
+            ($t: ty, $less: expr, $great: expr) => {
+                let mut less = $less;
+                let mut great = $great;
+
+                <$t>::osort(1, &mut less, &mut great);
+                assert_eq!((less, great), ($less, $great));
+
+                <$t>::osort(1, &mut great, &mut less);
+                assert_eq!((great, less), ($less, $great));
+
+                <$t>::osort(-1, &mut less, &mut great);
+                assert_eq!((less, great), ($great, $less));
+
+                <$t>::osort(-1, &mut great, &mut less);
+                assert_eq!((great, less), ($great, $less));
+            };
+        }
+
+        test_sort!(i8, -1, 2);
+        test_sort!(i16, -1, 2);
+        test_sort!(i32, -1, 2);
+        test_sort!(i64, -1, 2);
+        test_sort!(isize, -1, 2);
+
+        test_sort!(u8, 1, 2);
+        test_sort!(u16, 1, 2);
+        test_sort!(u32, 1, 2);
+        test_sort!(u64, 1, 2);
+        test_sort!(usize, 1, 2);
+    }
+
+    #[test]
+    fn test_min() {
+        macro_rules! test_min {
+            ($t: ty, $min: expr, $max: expr) => {
+                assert_eq!(<$t>::omin($min, $max), $min);
+                assert_eq!(<$t>::omin($max, $min), $min);
+            };
+        }
+
+        test_min!(i8, -1, 2);
+        test_min!(i16, -1, 2);
+        test_min!(i32, -1, 2);
+        test_min!(i64, -1, 2);
+        test_min!(isize, -1, 2);
+
+        test_min!(u8, 1, 2);
+        test_min!(u16, 1, 2);
+        test_min!(u32, 1, 2);
+        test_min!(u64, 1, 2);
+        test_min!(usize, 1, 2);
+    }
+
+    #[test]
+    fn test_max() {
+        macro_rules! test_max {
+            ($t: ty, $min: expr, $max: expr) => {
+                assert_eq!(<$t>::omax($min, $max), $max);
+                assert_eq!(<$t>::omax($max, $min), $max);
+            };
+        }
+
+        test_max!(i8, -1, 2);
+        test_max!(i16, -1, 2);
+        test_max!(i32, -1, 2);
+        test_max!(i64, -1, 2);
+        test_max!(isize, -1, 2);
+
+        test_max!(u8, 1, 2);
+        test_max!(u16, 1, 2);
+        test_max!(u32, 1, 2);
+        test_max!(u64, 1, 2);
+        test_max!(usize, 1, 2);
     }
 }
