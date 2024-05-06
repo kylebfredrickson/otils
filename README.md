@@ -22,6 +22,8 @@ Slices of types implementing `ObliviousOps` can be obliviously sorted. Currently
 #### [Bitonic Sort](https://en.wikipedia.org/wiki/Bitonic_sorter)
 - `7d19459`
     - Time: 376,781,487 ns/iter (+/- 8,625,826)
+- `5bf48b2`
+    - Time (8 threads): 85,374,883 ns/iter (+/- 13,014,844)
 
 
 ### Oblivious Compaction
