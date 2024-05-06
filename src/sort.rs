@@ -1,10 +1,11 @@
 use crate::ObliviousOps;
+use std::marker;
 
 mod bitonic;
-use bitonic::bitonic_sort;
+use bitonic::parallel_bitonic_sort;
 
-pub fn osort<T: ObliviousOps>(list: &mut [T]) {
-    bitonic_sort(list, 1);
+pub fn osort<T: ObliviousOps + marker::Send>(list: &mut [T], threads: i8) {
+    parallel_bitonic_sort(list, 1, threads);
 }
 
 #[cfg(test)]
@@ -17,8 +18,9 @@ mod tests {
 
     #[test]
     fn test_sort() {
-        let mut a: [i64; 4] = [3, 1, 2, 4];
-        osort(&mut a);
+        let mut a: [i32; 4] = [3, 1, 2, 4];
+        osort(&mut a, 2);
+        println!("{:?}", a);
         assert!(is_sorted(&a));
     }
 }
