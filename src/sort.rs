@@ -20,7 +20,6 @@ mod tests {
     fn test_sort() {
         let mut a: [i32; 4] = [3, 1, 2, 4];
         osort(&mut a, 2);
-        println!("{:?}", a);
         assert!(is_sorted(&a));
     }
 }

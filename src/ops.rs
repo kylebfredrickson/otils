@@ -64,9 +64,9 @@ extern "C" {
 
 // This implements ObliviousOps for primitive types by calling out to C
 // functions. I decided to call to C because 1) Rust does not allow many of the
-// operations that these bit manipulations require (e.g., overflow, casting,
-// etc.) and 2) I was unsure if the Rust workarounds would actually be constant
-// time (e.g., wrapping_sub, try_into, etc.).
+// operations that these bit manipulations require (overflow, casting) and 2) I
+// was unsure if the Rust workarounds would actually be constant time
+// (wrapping_sub, try_into, etc.).
 macro_rules! impl_ops {
     ($from: ty, $into: ty, $select_fn: expr, $equal_fn: expr, $compare_fn: expr) => {
         impl ObliviousOps for $from {

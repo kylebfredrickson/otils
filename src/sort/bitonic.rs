@@ -3,7 +3,6 @@ use std::{marker, thread};
 
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
 // TODO: check the number of spawned threads.
-// TODO: try an iterative implementation instead of a recursive implementation.
 
 pub fn parallel_bitonic_sort<T: ObliviousOps + marker::Send>(
     list: &mut [T],
@@ -43,7 +42,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + marker::Send>(
 ) {
     if threads > 1 {
         if l_half.len() >= 1 && r_half.len() >= 1 {
-            bitonic_linear_pass(l_half, r_half, cond);
+            bitonic_pass(l_half, r_half, cond);
 
             let l_threads = threads / 2;
             let r_threads = threads - l_threads;
@@ -65,7 +64,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + marker::Send>(
 
 fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) {
     if l_half.len() >= 1 && r_half.len() >= 1 {
-        bitonic_linear_pass(l_half, r_half, cond);
+        bitonic_pass(l_half, r_half, cond);
 
         let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
         let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
@@ -97,7 +96,7 @@ fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) 
 // }
 
 #[inline]
-fn bitonic_linear_pass<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) {
+fn bitonic_pass<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) {
     for i in 0..l_half.len() {
         T::osort(cond, &mut l_half[i], &mut r_half[i]);
     }
@@ -116,7 +115,7 @@ mod tests {
 
     #[bench]
     fn bench_bitonic_sort(b: &mut Bencher) {
-        let size = 1048576;
+        let size = 0x100000;
         let mut v: Vec<i32> = (0..size).rev().collect();
         parallel_bitonic_sort(&mut v[..], 1, 8);
         assert!(is_sorted(&v[..]));

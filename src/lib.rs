@@ -7,4 +7,4 @@ mod sort;
 pub use crate::sort::osort;
 
 mod compact;
-pub use crate::compact::ocompact;
+pub use crate::compact::ofilter;
