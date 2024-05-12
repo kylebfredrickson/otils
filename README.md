@@ -20,6 +20,8 @@ This trait enables users to define custom types that can be obliviously operated
 Slices of types implementing `ObliviousOps` can be obliviously sorted. Currently, the following oblivious sort algorithms are implemented:
 
 #### [Bitonic Sort](https://en.wikipedia.org/wiki/Bitonic_sorter)
+Benchmark sorts $2^{20}$ 32-bit integers.
+
 - `7d19459`
     - Time: 376,781,487 ns/iter (+/- 8,625,826)
 - `5bf48b2`
@@ -32,3 +34,7 @@ Slices of types implementing `ObliviousOps` can be obliviously sorted. Currently
 Slices of types implementing `ObliviousOps` can be obliviously compacted. Currently, the following oblivious compaction algorithms are implemented:
 
 #### [ORCompact](https://dl.acm.org/doi/abs/10.1145/3548606.3560603)
+Benchmark compacts $2^{20}$ 32-bit integers.
+
+- `ee9b776`
+    - Time: 22,353,037 ns/iter (+/- 106,639)

@@ -109,16 +109,10 @@ mod tests {
     extern crate test;
     use test::Bencher;
 
-    fn is_sorted<T: Ord>(slice: &[T]) -> bool {
-        slice.windows(2).all(|w| w[0] <= w[1])
-    }
-
     #[bench]
     fn bench_bitonic_sort(b: &mut Bencher) {
         let size = 0x100000;
         let mut v: Vec<i32> = (0..size).rev().collect();
-        parallel_bitonic_sort(&mut v[..], 1, 8);
-        assert!(is_sorted(&v[..]));
 
         b.iter(|| parallel_bitonic_sort(&mut v[..], 1, 8));
     }

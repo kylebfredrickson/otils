@@ -105,3 +105,20 @@ fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    extern crate test;
+    use test::Bencher;
+
+    #[bench]
+    fn bench_bitonic_sort(b: &mut Bencher) {
+        let size = 0x100000;
+        let mut v: Vec<i32> = (0..size).collect();
+        let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
+
+        b.iter(|| parallel_or_compact(&mut v[..], &bits[..], 8))
+    }
+}
