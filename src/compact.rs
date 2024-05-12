@@ -12,9 +12,9 @@ pub fn ofilter<T: ObliviousOps + marker::Send, F>(
     threads: u8,
 ) -> Vec<T>
 where
-    F: Fn(&T) -> usize,
+    F: Fn(&T) -> bool,
 {
-    let bits: Vec<usize> = data.iter().map(f).collect();
+    let bits: Vec<usize> = data.iter().map(f).map(|b| if b { 1 } else { 0 }).collect();
     parallel_or_compact(&mut data[..], &bits[..], threads);
     data.truncate(num_matches);
     data
@@ -26,9 +26,16 @@ mod tests {
 
     #[test]
     fn test_filter() {
-        let data: Vec<i32> = vec![1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-        let odd_data = ofilter(data, |x| (x % 2).try_into().unwrap(), 5, 1);
-        let check: Vec<i32> = (1..11).filter(|x| x % 2 == 1).collect();
-        assert_eq!(odd_data, check);
+        macro_rules! test_filter {
+            ($v: expr, $f: expr, $t: ty) => {
+                let data: Vec<$t> = $v.into_iter().collect();
+                let real: Vec<$t> = $v.into_iter().filter($f).collect();
+                let test = ofilter(data, $f, real.len(), 2);
+                assert_eq!(test, real);
+            };
+        }
+
+        test_filter!((1..11), |x| x % 2 == 0, i32);
+        test_filter!((1..11), |x| x % 3 == 0, i32);
     }
 }
