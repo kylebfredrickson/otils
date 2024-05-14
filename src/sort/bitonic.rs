@@ -11,9 +11,10 @@ pub fn parallel_bitonic_sort<T: ObliviousOps + marker::Send>(
 ) {
     if threads > 1 {
         if list.len() > 1 {
+            let (l_half, r_half) = list.split_at_mut(list.len() / 2);
+
             let l_threads = threads / 2;
             let r_threads = threads - l_threads;
-            let (l_half, r_half) = list.split_at_mut(list.len() / 2);
             thread::scope(|s| {
                 s.spawn(|| parallel_bitonic_sort(l_half, cond, l_threads));
                 s.spawn(|| parallel_bitonic_sort(r_half, -cond, r_threads));
@@ -43,6 +44,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + marker::Send>(
     if threads > 1 {
         if l_half.len() >= 1 && r_half.len() >= 1 {
             bitonic_pass(l_half, r_half, cond);
+            // parallel_bitonic_pass(l_half, r_half, cond, threads);
 
             let l_threads = threads / 2;
             let r_threads = threads - l_threads;
@@ -74,7 +76,7 @@ fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) 
 }
 
 // // This makes it slower for some reason.
-// fn parallel_bitonic_linear_pass<T: ObliviousOps + marker::Send>(
+// fn parallel_bitonic_pass<T: ObliviousOps + marker::Send>(
 //     l_half: &mut [T],
 //     r_half: &mut [T],
 //     cond: i8,
@@ -87,11 +89,11 @@ fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: i8) 
 //         let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
 //         let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
 //         thread::scope(|s| {
-//             s.spawn(|| parallel_bitonic_linear_pass(ll_quarter, rl_quarter, cond, l_threads));
-//             s.spawn(|| parallel_bitonic_linear_pass(lr_quarter, rr_quarter, cond, r_threads));
+//             s.spawn(|| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, l_threads));
+//             s.spawn(|| parallel_bitonic_pass(lr_quarter, rr_quarter, cond, r_threads));
 //         });
 //     } else {
-//         bitonic_linear_pass(l_half, r_half, cond);
+//         bitonic_pass(l_half, r_half, cond);
 //     }
 // }
 
