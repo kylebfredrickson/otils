@@ -1,6 +1,8 @@
 use crate::ObliviousOps;
 use std::{marker, thread};
 
+// TODO: parallelize swapping.
+
 pub fn parallel_or_compact<T: ObliviousOps + marker::Send>(
     data: &mut [T],
     bits: &[usize],
@@ -114,11 +116,11 @@ mod tests {
     use test::Bencher;
 
     #[bench]
-    fn bench_bitonic_sort(b: &mut Bencher) {
+    fn bench_or_compact(b: &mut Bencher) {
         let size = 0x100000;
-        let mut v: Vec<i32> = (0..size).collect();
+        let mut v: Vec<i64> = (0..size).collect();
         let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
 
-        b.iter(|| parallel_or_compact(&mut v[..], &bits[..], 8))
+        b.iter(|| parallel_or_compact(&mut v[..], &bits[..], 4))
     }
 }

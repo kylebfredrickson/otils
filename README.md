@@ -37,4 +37,4 @@ Slices of types implementing `ObliviousOps` can be obliviously compacted. Curren
 Benchmark compacts $2^{20}$ 32-bit integers.
 
 - `ee9b776`
-    - Time: 22,353,037 ns/iter (+/- 106,639)
+    - Time: (8 threads) 22,353,037 ns/iter (+/- 106,639)

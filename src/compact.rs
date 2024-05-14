@@ -35,8 +35,8 @@ mod tests {
             };
         }
 
-        test_filter!((1..11), |x| i32::oequal(x % 2, 0), i32);
-        test_filter!((1..11), |x| i32::oequal(x % 3, 0), i32);
+        test_filter!((1..101), |x| i32::oequal(x % 2, 0), i32);
+        test_filter!((1..101), |x| i32::oequal(x % 3, 0), i32);
         test_filter!((1..101), |x| i32::oequal(x % 7, 0), i32);
     }
 }
