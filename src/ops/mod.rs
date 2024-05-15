@@ -1,4 +1,4 @@
-pub trait ObliviousOps: Copy {
+pub trait ObliviousOps: Clone {
     fn oselect(cond: i8, a: Self, b: Self) -> Self;
     fn oequal(a: Self, b: Self) -> i8;
     fn ocompare(a: Self, b: Self) -> i8;
@@ -12,34 +12,34 @@ pub trait ObliviousOps: Copy {
     }
 
     fn ogreater_equal(a: Self, b: Self) -> i8 {
-        Self::ogreater(a, b) | Self::oequal(a, b)
+        Self::ogreater(a.clone(), b.clone()) | Self::oequal(a, b)
     }
 
     fn olesser_equal(a: Self, b: Self) -> i8 {
-        Self::olesser(a, b) | Self::oequal(a, b)
+        Self::olesser(a.clone(), b.clone()) | Self::oequal(a, b)
     }
 
     // This requires that Self implements the copy trait.
     fn oswap(cond: i8, a: &mut Self, b: &mut Self) {
-        let tmp = *a;
-        *a = Self::oselect(cond, *b, *a);
-        *b = Self::oselect(cond, tmp, *b);
+        let tmp = a.clone();
+        *a = Self::oselect(cond, b.clone(), a.clone());
+        *b = Self::oselect(cond, tmp, b.clone());
     }
 
     // When cond = 1, this is an ascending sort, when cond = -1 it is
     // descending.
     fn osort(cond: i8, a: &mut Self, b: &mut Self) {
-        let cmp = Self::ocompare(*a, *b);
+        let cmp = Self::ocompare(a.clone(), b.clone());
         Self::oswap(i8::oequal(cmp, cond), a, b);
     }
 
     fn omin(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
+        let cmp = Self::ocompare(a.clone(), b.clone());
         Self::oselect(i8::oequal(cmp, -1), a, b)
     }
 
     fn omax(a: Self, b: Self) -> Self {
-        let cmp = Self::ocompare(a, b);
+        let cmp = Self::ocompare(a.clone(), b.clone());
         Self::oselect(i8::oequal(cmp, 1), a, b)
     }
 }

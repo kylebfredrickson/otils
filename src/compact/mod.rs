@@ -1,11 +1,10 @@
 use crate::ObliviousOps;
-use std::marker;
 
 mod or_compact;
 
 use self::or_compact::parallel_or_compact;
 
-pub fn ofilter<T: ObliviousOps + marker::Send, F>(
+pub fn ofilter<T: ObliviousOps + Send, F>(
     mut data: Vec<T>,
     f: F,
     num_matches: usize,
@@ -15,8 +14,10 @@ where
     F: Fn(&T) -> i8,
 {
     let bits: Vec<usize> = data.iter().map(|x| f(x).try_into().unwrap()).collect();
-    parallel_or_compact(&mut data[..], &bits[..], threads);
+
+    parallel_or_compact(&mut data, &bits, threads);
     data.truncate(num_matches);
+
     data
 }
 
