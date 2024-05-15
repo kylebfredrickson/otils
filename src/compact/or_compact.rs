@@ -1,13 +1,9 @@
 use crate::ObliviousOps;
-use std::{marker, thread};
+use std::thread;
 
 // TODO: parallelize swapping.
 
-pub fn parallel_or_compact<T: ObliviousOps + marker::Send>(
-    data: &mut [T],
-    bits: &[usize],
-    threads: u8,
-) {
+pub fn parallel_or_compact<T: ObliviousOps + Send>(data: &mut [T], bits: &[usize], threads: usize) {
     if threads > 1 {
         let n = data.len();
         if n > 0 {
@@ -45,11 +41,11 @@ fn or_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize]) {
     }
 }
 
-fn parallel_or_off_compact<T: ObliviousOps + marker::Send>(
+fn parallel_or_off_compact<T: ObliviousOps + Send>(
     data: &mut [T],
     bits: &[usize],
     offset: usize,
-    threads: u8,
+    threads: usize,
 ) {
     if threads > 1 {
         let n = data.len();

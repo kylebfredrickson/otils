@@ -1,10 +1,9 @@
 use crate::ObliviousOps;
-use std::marker;
 
 mod bitonic;
 use bitonic::parallel_bitonic_sort;
 
-pub fn osort<T: ObliviousOps + marker::Send>(list: &mut [T], threads: u8) {
+pub fn osort<T: ObliviousOps + Send>(list: &mut [T], threads: usize) {
     parallel_bitonic_sort(list, true, threads);
 }
 

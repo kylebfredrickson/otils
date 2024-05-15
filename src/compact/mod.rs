@@ -1,15 +1,14 @@
 use crate::ObliviousOps;
-use std::marker;
 
 mod or_compact;
 
 use self::or_compact::parallel_or_compact;
 
-pub fn ofilter<T: ObliviousOps + marker::Send, F>(
+pub fn ofilter<T: ObliviousOps + Send, F>(
     mut data: Vec<T>,
     f: F,
     num_matches: usize,
-    threads: u8,
+    threads: usize,
 ) -> Vec<T>
 where
     F: Fn(&T) -> bool,

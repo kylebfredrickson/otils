@@ -10,31 +10,11 @@ pub trait ObliviousOps: Copy + PartialOrd {
             *a = *b;
             *b = tmp;
         }
-        // *a = Self::oselect(cond, *b, *a);
-        // *b = Self::oselect(cond, tmp, *b);
     }
 
-    // When cond = 1, this is an ascending sort, when cond = -1 it is
-    // descending.
     fn osort(cond: bool, a: &mut Self, b: &mut Self) {
         Self::oswap((a < b) ^ cond, a, b);
-        // let cmp = Self::ocompare(*a, *b);
-        // let tmp = *a;
-        // if Self::ocompare(*a, *b) == cond {
-        //     *a = *b;
-        //     *b = tmp;
-        // }
     }
-
-    // fn omin(a: Self, b: Self) -> Self {
-    //     let cmp = Self::ocompare(a, b);
-    //     Self::oselect(i8::oequal(cmp, -1), a, b)
-    // }
-
-    // fn omax(a: Self, b: Self) -> Self {
-    //     let cmp = Self::ocompare(a, b);
-    //     Self::oselect(i8::oequal(cmp, 1), a, b)
-    // }
 }
 
 #[link(name = "ops", kind = "static")]

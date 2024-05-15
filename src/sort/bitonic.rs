@@ -1,14 +1,10 @@
 use crate::ObliviousOps;
-use std::{marker, thread};
+use std::thread;
 
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
 // TODO: check the number of spawned threads.
 
-pub fn parallel_bitonic_sort<T: ObliviousOps + marker::Send>(
-    list: &mut [T],
-    cond: bool,
-    threads: u8,
-) {
+pub fn parallel_bitonic_sort<T: ObliviousOps + Send>(list: &mut [T], cond: bool, threads: usize) {
     if threads > 1 {
         if list.len() > 1 {
             let (l_half, r_half) = list.split_at_mut(list.len() / 2);
@@ -36,11 +32,11 @@ fn bitonic_sort<T: ObliviousOps>(list: &mut [T], cond: bool) {
     }
 }
 
-fn parallel_bitonic_merge<T: ObliviousOps + marker::Send>(
+fn parallel_bitonic_merge<T: ObliviousOps + Send>(
     l_half: &mut [T],
     r_half: &mut [T],
     cond: bool,
-    threads: u8,
+    threads: usize,
 ) {
     if threads > 1 {
         if l_half.len() >= 1 && r_half.len() >= 1 {
@@ -75,11 +71,11 @@ fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: bool
 }
 
 // This makes it slower for some reason.
-fn parallel_bitonic_pass<T: ObliviousOps + marker::Send>(
+fn parallel_bitonic_pass<T: ObliviousOps + Send>(
     l_half: &mut [T],
     r_half: &mut [T],
     cond: bool,
-    threads: u8,
+    threads: usize,
 ) {
     // need to check that the chunks are big enough also
     if threads > 1 {
