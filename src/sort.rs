@@ -5,7 +5,7 @@ mod bitonic;
 use bitonic::parallel_bitonic_sort;
 
 pub fn osort<T: ObliviousOps + marker::Send>(list: &mut [T], threads: u8) {
-    parallel_bitonic_sort(list, 1, threads);
+    parallel_bitonic_sort(list, true, threads);
 }
 
 #[cfg(test)]
@@ -18,8 +18,8 @@ mod tests {
 
     #[test]
     fn test_sort() {
-        let mut a: [i32; 4] = [3, 1, 2, 4];
-        osort(&mut a, 2);
+        let mut a: Vec<i32> = (0..128).rev().collect();
+        osort(&mut a[..], 2);
         assert!(is_sorted(&a));
     }
 }

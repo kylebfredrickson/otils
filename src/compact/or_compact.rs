@@ -20,11 +20,7 @@ pub fn parallel_or_compact<T: ObliviousOps + marker::Send>(
             or_compact(l_data, l_bits);
             parallel_or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1, threads);
             for i in 0..n2 {
-                T::oswap(
-                    usize::ogreater_equal(i, m),
-                    &mut l_data[i],
-                    &mut r_data[n1 - n2 + i],
-                );
+                T::oswap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
             }
         }
     } else {
@@ -44,11 +40,7 @@ fn or_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize]) {
         or_compact(l_data, l_bits);
         or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1);
         for i in 0..n2 {
-            T::oswap(
-                usize::ogreater_equal(i, m),
-                &mut l_data[i],
-                &mut r_data[n1 - n2 + i],
-            );
+            T::oswap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
         }
     }
 }
@@ -64,7 +56,7 @@ fn parallel_or_off_compact<T: ObliviousOps + marker::Send>(
         if n == 2 {
             let (l_data, r_data) = data.split_at_mut(1);
             let offset = (((1 - bits[0]) * bits[1]) ^ offset) as i8;
-            T::oswap(offset, &mut l_data[0], &mut r_data[0]);
+            T::oswap(offset == 1, &mut l_data[0], &mut r_data[0]);
         } else if n > 2 {
             let m: usize = bits[0..(n / 2)].iter().sum();
             let (l_data, r_data) = data.split_at_mut(n / 2);
@@ -74,15 +66,13 @@ fn parallel_or_off_compact<T: ObliviousOps + marker::Send>(
             let r_threads = threads - l_threads;
             thread::scope(|s| {
                 s.spawn(|| parallel_or_off_compact(l_data, l_bits, offset % (n / 2), l_threads));
-                s.spawn(|| {
-                    parallel_or_off_compact(r_data, r_bits, (offset + m) % (n / 2), r_threads)
-                });
+                parallel_or_off_compact(r_data, r_bits, (offset + m) % (n / 2), r_threads)
             });
 
-            let mut s = usize::ogreater_equal((offset % (n / 2)) + m, n / 2);
-            s ^= usize::ogreater_equal(offset, n / 2);
+            let mut s = (offset % (n / 2)) + m >= n / 2;
+            s ^= offset >= n / 2;
             for i in 0..(n / 2) {
-                let b = s ^ usize::ogreater_equal(i, (offset + m) % (n / 2));
+                let b = s ^ (i >= (offset + m) % (n / 2));
                 T::oswap(b, &mut l_data[i], &mut r_data[i]);
             }
         }
@@ -96,7 +86,7 @@ fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize
     if n == 2 {
         let (l_data, r_data) = data.split_at_mut(1);
         let b = (((1 - bits[0]) * bits[1]) ^ offset) as i8;
-        T::oswap(b, &mut l_data[0], &mut r_data[0]);
+        T::oswap(b == 1, &mut l_data[0], &mut r_data[0]);
     } else if n > 2 {
         let m: usize = bits[0..(n / 2)].iter().sum();
         let (l_data, r_data) = data.split_at_mut(n / 2);
@@ -104,14 +94,16 @@ fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize
         or_off_compact(l_data, l_bits, offset % (n / 2));
         or_off_compact(r_data, r_bits, (offset + m) % (n / 2));
 
-        let mut s = usize::ogreater_equal((offset % (n / 2)) + m, n / 2);
-        s ^= usize::ogreater_equal(offset, n / 2);
+        let mut s = (offset % (n / 2)) + m >= n / 2;
+        s ^= offset >= n / 2;
         for i in 0..(n / 2) {
-            let b = s ^ usize::ogreater_equal(i, (offset + m) % (n / 2));
+            let b = s ^ (i >= (offset + m) % (n / 2));
             T::oswap(b, &mut l_data[i], &mut r_data[i]);
         }
     }
 }
+
+// fn or_off_swap<T: ObliviousOps>(l_data: &mut [T], r_data: &mut [T], )
 
 #[cfg(test)]
 mod tests {
