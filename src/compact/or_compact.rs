@@ -1,8 +1,6 @@
 use crate::ObliviousOps;
 use std::thread;
 
-// TODO: parallelize swapping.
-
 pub fn parallel_or_compact<T: ObliviousOps + Send>(data: &mut [T], bits: &[usize], threads: usize) {
     if threads > 1 {
         let n = data.len();
