@@ -70,27 +70,27 @@ fn bitonic_merge<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: bool
     }
 }
 
-// This makes it slower for some reason.
-fn parallel_bitonic_pass<T: ObliviousOps + Send>(
-    l_half: &mut [T],
-    r_half: &mut [T],
-    cond: bool,
-    threads: usize,
-) {
-    // need to check that the chunks are big enough also
-    if threads > 1 {
-        let l_threads = threads / 2;
-        let r_threads = threads - l_threads;
-        let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
-        let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
-        thread::scope(|s| {
-            s.spawn(|| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, l_threads));
-            parallel_bitonic_pass(lr_quarter, rr_quarter, cond, r_threads);
-        });
-    } else {
-        bitonic_pass(l_half, r_half, cond);
-    }
-}
+// // This makes it slower for some reason.
+// fn parallel_bitonic_pass<T: ObliviousOps + Send>(
+//     l_half: &mut [T],
+//     r_half: &mut [T],
+//     cond: bool,
+//     threads: usize,
+// ) {
+//     // need to check that the chunks are big enough also
+//     if threads > 1 {
+//         let l_threads = threads / 2;
+//         let r_threads = threads - l_threads;
+//         let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
+//         let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
+//         thread::scope(|s| {
+//             s.spawn(|| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, l_threads));
+//             parallel_bitonic_pass(lr_quarter, rr_quarter, cond, r_threads);
+//         });
+//     } else {
+//         bitonic_pass(l_half, r_half, cond);
+//     }
+// }
 
 #[inline]
 fn bitonic_pass<T: ObliviousOps>(l_half: &mut [T], r_half: &mut [T], cond: bool) {

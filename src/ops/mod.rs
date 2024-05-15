@@ -1,7 +1,5 @@
 pub trait ObliviousOps: Copy + PartialOrd {
     fn oselect(cond: bool, a: Self, b: Self) -> Self;
-    fn oequal(a: Self, b: Self) -> bool;
-    fn ocompare(a: Self, b: Self) -> i8;
 
     // This requires that Self implements the copy trait.
     fn oswap(cond: bool, a: &mut Self, b: &mut Self) {
@@ -23,16 +21,6 @@ extern "C" {
     fn select_16(cond: bool, a: i16, b: i16) -> i16;
     fn select_32(cond: bool, a: i32, b: i32) -> i32;
     fn select_64(cond: bool, a: i64, b: i64) -> i64;
-
-    fn equal_8(a: i8, b: i8) -> bool;
-    fn equal_16(a: i16, b: i16) -> bool;
-    fn equal_32(a: i32, b: i32) -> bool;
-    fn equal_64(a: i64, b: i64) -> bool;
-
-    fn compare_8(a: i8, b: i8) -> i8;
-    fn compare_16(a: i16, b: i16) -> i8;
-    fn compare_32(a: i32, b: i32) -> i8;
-    fn compare_64(a: i64, b: i64) -> i8;
 }
 
 // This implements ObliviousOps for primitive types by calling out to C
@@ -45,14 +33,6 @@ macro_rules! impl_ops {
         impl ObliviousOps for $from {
             fn oselect(cond: bool, a: Self, b: Self) -> Self {
                 unsafe { $select_fn(cond, a as $into, b as $into) as Self }
-            }
-
-            fn oequal(a: Self, b: Self) -> bool {
-                unsafe { $equal_fn(a as $into, b as $into) }
-            }
-
-            fn ocompare(a: Self, b: Self) -> i8 {
-                unsafe { $compare_fn(a as $into, b as $into) }
             }
         }
     };
@@ -94,156 +74,6 @@ mod tests {
         test_select!(u64, 2, 1);
         test_select!(usize, 2, 1);
     }
-
-    #[test]
-    fn test_equal() {
-        macro_rules! test_equal {
-            ($t: ty, $a: expr, $b: expr) => {
-                assert_eq!(<$t>::oequal($a, $a), true);
-                assert_eq!(<$t>::oequal($b, $b), true);
-                assert_eq!(<$t>::oequal($a, $b), false);
-                assert_eq!(<$t>::oequal($b, $a), false);
-            };
-        }
-
-        test_equal!(i8, -1, 2);
-        test_equal!(i16, -1, 2);
-        test_equal!(i32, -1, 2);
-        test_equal!(i64, -1, 2);
-        test_equal!(isize, -1, 2);
-
-        test_equal!(u8, 1, 2);
-        test_equal!(u16, 1, 2);
-        test_equal!(u32, 1, 2);
-        test_equal!(u64, 1, 2);
-        test_equal!(usize, 1, 2);
-    }
-
-    #[test]
-    fn test_compare() {
-        macro_rules! test_compare {
-            ($t: ty, $great: expr, $less: expr) => {
-                assert_eq!(<$t>::ocompare($great, $less), 1);
-                assert_eq!(<$t>::ocompare($less, $great), -1);
-                assert_eq!(<$t>::ocompare($great, $great), 0);
-                assert_eq!(<$t>::ocompare($less, $less), 0);
-            };
-        }
-
-        test_compare!(i8, 4, 3);
-        test_compare!(i16, 4, 3);
-        test_compare!(i32, 4, 3);
-        test_compare!(i64, 4, 3);
-        test_compare!(isize, 4, 3);
-
-        test_compare!(i8, -3, -4);
-        test_compare!(i16, -3, -4);
-        test_compare!(i32, -3, -4);
-        test_compare!(i64, -3, -4);
-        test_compare!(isize, -3, -4);
-
-        test_compare!(u8, 4, 3);
-        test_compare!(u16, 4, 3);
-        test_compare!(u32, 4, 3);
-        test_compare!(u64, 4, 3);
-        test_compare!(usize, 4, 3);
-    }
-
-    // #[test]
-    // fn test_greater() {
-    //     macro_rules! test_greater {
-    //         ($t: ty, $great: expr, $less: expr) => {
-    //             assert_eq!(<$t>::ogreater($great, $less), 1);
-    //             assert_eq!(<$t>::ogreater($less, $great), 0);
-    //             assert_eq!(<$t>::ogreater($great, $great), 0);
-    //             assert_eq!(<$t>::ogreater($less, $less), 0);
-    //         };
-    //     }
-
-    //     test_greater!(i8, -2, -3);
-    //     test_greater!(i16, -2, -3);
-    //     test_greater!(i32, -2, -3);
-    //     test_greater!(i64, -2, -3);
-    //     test_greater!(isize, -2, -3);
-
-    //     test_greater!(u8, 2, 1);
-    //     test_greater!(u16, 2, 1);
-    //     test_greater!(u32, 2, 1);
-    //     test_greater!(u64, 2, 1);
-    //     test_greater!(usize, 2, 1);
-    // }
-
-    // #[test]
-    // fn test_lesser() {
-    //     macro_rules! test_lesser {
-    //         ($t: ty, $great: expr, $less: expr) => {
-    //             assert_eq!(<$t>::olesser($great, $less), 0);
-    //             assert_eq!(<$t>::olesser($less, $great), 1);
-    //             assert_eq!(<$t>::olesser($great, $great), 0);
-    //             assert_eq!(<$t>::olesser($less, $less), 0);
-    //         };
-    //     }
-
-    //     test_lesser!(i8, -2, -3);
-    //     test_lesser!(i16, -2, -3);
-    //     test_lesser!(i32, -2, -3);
-    //     test_lesser!(i64, -2, -3);
-    //     test_lesser!(isize, -2, -3);
-
-    //     test_lesser!(u8, 2, 1);
-    //     test_lesser!(u16, 2, 1);
-    //     test_lesser!(u32, 2, 1);
-    //     test_lesser!(u64, 2, 1);
-    //     test_lesser!(usize, 2, 1);
-    // }
-
-    // #[test]
-    // fn test_greater_equal() {
-    //     macro_rules! test_greater_equal {
-    //         ($t: ty, $great: expr, $less: expr) => {
-    //             assert_eq!(<$t>::ogreater_equal($great, $less), 1);
-    //             assert_eq!(<$t>::ogreater_equal($less, $great), 0);
-    //             assert_eq!(<$t>::ogreater_equal($great, $great), 1);
-    //             assert_eq!(<$t>::ogreater_equal($less, $less), 1);
-    //         };
-    //     }
-
-    //     test_greater_equal!(i8, -2, -3);
-    //     test_greater_equal!(i16, -2, -3);
-    //     test_greater_equal!(i32, -2, -3);
-    //     test_greater_equal!(i64, -2, -3);
-    //     test_greater_equal!(isize, -2, -3);
-
-    //     test_greater_equal!(u8, 2, 1);
-    //     test_greater_equal!(u16, 2, 1);
-    //     test_greater_equal!(u32, 2, 1);
-    //     test_greater_equal!(u64, 2, 1);
-    //     test_greater_equal!(usize, 2, 1);
-    // }
-
-    // #[test]
-    // fn test_lesser_equal() {
-    //     macro_rules! test_lesser_equal {
-    //         ($t: ty, $great: expr, $less: expr) => {
-    //             assert_eq!(<$t>::olesser_equal($great, $less), 0);
-    //             assert_eq!(<$t>::olesser_equal($less, $great), 1);
-    //             assert_eq!(<$t>::olesser_equal($great, $great), 1);
-    //             assert_eq!(<$t>::olesser_equal($less, $less), 1);
-    //         };
-    //     }
-
-    //     test_lesser_equal!(i8, -2, -3);
-    //     test_lesser_equal!(i16, -2, -3);
-    //     test_lesser_equal!(i32, -2, -3);
-    //     test_lesser_equal!(i64, -2, -3);
-    //     test_lesser_equal!(isize, -2, -3);
-
-    //     test_lesser_equal!(u8, 2, 1);
-    //     test_lesser_equal!(u16, 2, 1);
-    //     test_lesser_equal!(u32, 2, 1);
-    //     test_lesser_equal!(u64, 2, 1);
-    //     test_lesser_equal!(usize, 2, 1);
-    // }
 
     #[test]
     fn test_swap() {
@@ -302,48 +132,4 @@ mod tests {
         test_sort!(u64, 1, 2);
         test_sort!(usize, 1, 2);
     }
-
-    // #[test]
-    // fn test_min() {
-    //     macro_rules! test_min {
-    //         ($t: ty, $min: expr, $max: expr) => {
-    //             assert_eq!(<$t>::omin($min, $max), $min);
-    //             assert_eq!(<$t>::omin($max, $min), $min);
-    //         };
-    //     }
-
-    //     test_min!(i8, -1, 2);
-    //     test_min!(i16, -1, 2);
-    //     test_min!(i32, -1, 2);
-    //     test_min!(i64, -1, 2);
-    //     test_min!(isize, -1, 2);
-
-    //     test_min!(u8, 1, 2);
-    //     test_min!(u16, 1, 2);
-    //     test_min!(u32, 1, 2);
-    //     test_min!(u64, 1, 2);
-    //     test_min!(usize, 1, 2);
-    // }
-
-    // #[test]
-    // fn test_max() {
-    //     macro_rules! test_max {
-    //         ($t: ty, $min: expr, $max: expr) => {
-    //             assert_eq!(<$t>::omax($min, $max), $max);
-    //             assert_eq!(<$t>::omax($max, $min), $max);
-    //         };
-    //     }
-
-    //     test_max!(i8, -1, 2);
-    //     test_max!(i16, -1, 2);
-    //     test_max!(i32, -1, 2);
-    //     test_max!(i64, -1, 2);
-    //     test_max!(isize, -1, 2);
-
-    //     test_max!(u8, 1, 2);
-    //     test_max!(u16, 1, 2);
-    //     test_max!(u32, 1, 2);
-    //     test_max!(u64, 1, 2);
-    //     test_max!(usize, 1, 2);
-    // }
 }
