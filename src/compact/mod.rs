@@ -34,8 +34,8 @@ mod tests {
             };
         }
 
-        test_filter!((1..101), |x| x % 2 == 0, i32);
-        test_filter!((1..101), |x| x % 3 == 0, i32);
-        test_filter!((1..101), |x| x % 7 == 0, i32);
+        test_filter!((1..101), |x| x % 2 == 0, i64);
+        test_filter!((1..101), |x| x % 3 == 0, i64);
+        test_filter!((1..101), |x| x % 7 == 0, i64);
     }
 }

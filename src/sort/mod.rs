@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn test_sort() {
-        let mut a: Vec<i32> = (0..128).rev().collect();
+        let mut a: Vec<i64> = (0..128).rev().collect();
         osort(&mut a[..], 2);
         assert!(is_sorted(&a));
     }

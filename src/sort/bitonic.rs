@@ -109,7 +109,7 @@ mod tests {
     #[bench]
     fn bench_bitonic_sort(b: &mut Bencher) {
         let size = 0x100000;
-        let mut v: Vec<i32> = (0..size).rev().collect();
+        let mut v: Vec<i64> = (0..size).rev().collect();
         // let v = &mut v[..];
 
         b.iter(|| parallel_bitonic_sort(&mut v[..], true, 8));

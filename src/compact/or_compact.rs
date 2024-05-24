@@ -97,8 +97,6 @@ fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize
     }
 }
 
-// fn or_off_swap<T: ObliviousOps>(l_data: &mut [T], r_data: &mut [T], )
-
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -108,7 +106,7 @@ mod tests {
 
     #[bench]
     fn bench_or_compact(b: &mut Bencher) {
-        let size = 0x100000;
+        let size = 0x800000;
         let mut v: Vec<i64> = (0..size).collect();
         let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
 
