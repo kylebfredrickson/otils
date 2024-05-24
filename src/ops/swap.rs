@@ -40,6 +40,36 @@ use std::arch::asm;
 //     }
 // }
 
+pub fn swap_i16(cond: bool, a: &mut i16, b: &mut i16) {
+    let cond = cond as u8;
+    unsafe {
+        asm!(
+            "test {cond}, {cond}",
+            "cmovnz {a:x}, {b:x}",
+            "cmovnz {b:x}, {tmp:x}",
+            cond = in(reg_byte) cond,
+            tmp = in(reg) *a,
+            a = inout(reg) *a,
+            b = inout(reg) *b,
+        );
+    }
+}
+
+pub fn swap_u16(cond: bool, a: &mut u16, b: &mut u16) {
+    let cond = cond as u8;
+    unsafe {
+        asm!(
+            "test {cond}, {cond}",
+            "cmovnz {a:x}, {b:x}",
+            "cmovnz {b:x}, {tmp:x}",
+            cond = in(reg_byte) cond,
+            tmp = in(reg) *a,
+            a = inout(reg) *a,
+            b = inout(reg) *b,
+        );
+    }
+}
+
 pub fn swap_i32(cond: bool, a: &mut i32, b: &mut i32) {
     let cond = cond as u8;
     unsafe {

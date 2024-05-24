@@ -13,7 +13,7 @@ pub trait ObliviousOps: PartialOrd {
 #[link(name = "ops", kind = "static")]
 extern "C" {
     // fn select_8(cond: bool, a: i8, b: i8) -> i8;
-    // fn select_16(cond: bool, a: i16, b: i16) -> i16;
+    fn select_16(cond: bool, a: i16, b: i16) -> i16;
     fn select_32(cond: bool, a: i32, b: i32) -> i32;
     fn select_64(cond: bool, a: i64, b: i64) -> i64;
 }
@@ -39,8 +39,8 @@ macro_rules! impl_ops {
 
 // impl_ops!(i8, i8, select_8, swap_i8);
 // impl_ops!(u8, i8, select_8, swap_u8);
-// impl_ops!(i16, i16, select_16, swap_i16);
-// impl_ops!(u16, i16, select_16, swap_u16);
+impl_ops!(i16, i16, select_16, swap_i16);
+impl_ops!(u16, i16, select_16, swap_u16);
 impl_ops!(i32, i32, select_32, swap_i32);
 impl_ops!(u32, i32, select_32, swap_u32);
 impl_ops!(i64, i64, select_64, swap_i64);
@@ -62,13 +62,13 @@ mod tests {
         }
 
         // test_select!(i8, -2, 1);
-        // test_select!(i16, -2, 1);
+        test_select!(i16, -2, 1);
         test_select!(i32, -2, 1);
         test_select!(i64, -2, 1);
         test_select!(isize, -2, 1);
 
         // test_select!(u8, 2, 1);
-        // test_select!(u16, 2, 1);
+        test_select!(u16, 2, 1);
         test_select!(u32, 2, 1);
         test_select!(u64, 2, 1);
         test_select!(usize, 2, 1);
@@ -90,13 +90,13 @@ mod tests {
         }
 
         // test_swap!(i8, -5, 4);
-        // test_swap!(i16, -5, 4);
+        test_swap!(i16, -5, 4);
         test_swap!(i32, -5, 4);
         test_swap!(i64, -5, 4);
         test_swap!(isize, -5, 4);
 
         // test_swap!(u8, 5, 4);
-        // test_swap!(u16, 5, 4);
+        test_swap!(u16, 5, 4);
         test_swap!(u32, 5, 4);
         test_swap!(u64, 5, 4);
         test_swap!(usize, 5, 4);
@@ -124,13 +124,13 @@ mod tests {
         }
 
         // test_sort!(i8, -1, 2);
-        // test_sort!(i16, -1, 2);
+        test_sort!(i16, -1, 2);
         test_sort!(i32, -1, 2);
         test_sort!(i64, -1, 2);
         test_sort!(isize, -1, 2);
 
         // test_sort!(u8, 1, 2);
-        // test_sort!(u16, 1, 2);
+        test_sort!(u16, 1, 2);
         test_sort!(u32, 1, 2);
         test_sort!(u64, 1, 2);
         test_sort!(usize, 1, 2);
