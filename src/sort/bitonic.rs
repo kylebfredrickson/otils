@@ -4,7 +4,13 @@ use std::thread;
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
 // TODO: check the number of spawned threads.
 
+fn is_power_of_2(len: usize) -> bool {
+    len != 0 && len & (len - 1) == 0
+}
+
 pub fn parallel_bitonic_sort<T: ObliviousOps + Send>(list: &mut [T], cond: bool, threads: usize) {
+    assert!(is_power_of_2(list.len()));
+
     if threads > 1 {
         if list.len() > 1 {
             let (l_half, r_half) = list.split_at_mut(list.len() / 2);
