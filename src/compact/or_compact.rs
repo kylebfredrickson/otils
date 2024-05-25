@@ -106,7 +106,7 @@ mod tests {
 
     #[bench]
     fn bench_or_compact(b: &mut Bencher) {
-        let size = 0x800000;
+        let size = 0x100000;
         let mut v: Vec<i64> = (0..size).collect();
         let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
 
