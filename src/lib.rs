@@ -6,5 +6,5 @@ pub use crate::ops::ObliviousOps;
 mod sort;
 pub use crate::sort::osort;
 
-mod filter;
-pub use crate::filter::ofilter;
+mod compact;
+pub use crate::compact::ocompact;
