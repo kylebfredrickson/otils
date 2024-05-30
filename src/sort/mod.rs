@@ -1,9 +1,7 @@
-use crate::ObliviousOps;
-
 mod bitonic;
 use bitonic::parallel_bitonic_sort;
 
-pub fn sort<T: ObliviousOps + PartialOrd + Send>(list: &mut [T], threads: usize) {
+pub fn sort<T: PartialOrd + Send>(list: &mut [T], threads: usize) {
     parallel_bitonic_sort(list, true, threads);
 }
 
@@ -18,6 +16,7 @@ mod tests {
     #[test]
     fn test_sort() {
         let mut a: Vec<i64> = (0..128).rev().collect();
+
         sort(&mut a[..], 2);
         assert!(is_sorted(&a));
     }

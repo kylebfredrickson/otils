@@ -1,7 +1,7 @@
-use crate::ObliviousOps;
+use crate::ops;
 use std::thread;
 
-pub fn parallel_or_compact<T: ObliviousOps + Send>(data: &mut [T], bits: &[usize], threads: usize) {
+pub fn parallel_or_compact<T: Send>(data: &mut [T], bits: &[usize], threads: usize) {
     if threads > 1 {
         let n = data.len();
         if n > 0 {
@@ -14,7 +14,7 @@ pub fn parallel_or_compact<T: ObliviousOps + Send>(data: &mut [T], bits: &[usize
             or_compact(l_data, l_bits);
             parallel_or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1, threads);
             for i in 0..n2 {
-                T::oswap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
+                ops::swap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
             }
         }
     } else {
@@ -22,7 +22,7 @@ pub fn parallel_or_compact<T: ObliviousOps + Send>(data: &mut [T], bits: &[usize
     }
 }
 
-fn or_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize]) {
+fn or_compact<T>(data: &mut [T], bits: &[usize]) {
     let n = data.len();
     if n > 0 {
         let n1: usize = 1 << usize::ilog2(data.len());
@@ -34,23 +34,18 @@ fn or_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize]) {
         or_compact(l_data, l_bits);
         or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1);
         for i in 0..n2 {
-            T::oswap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
+            ops::swap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
         }
     }
 }
 
-fn parallel_or_off_compact<T: ObliviousOps + Send>(
-    data: &mut [T],
-    bits: &[usize],
-    offset: usize,
-    threads: usize,
-) {
+fn parallel_or_off_compact<T: Send>(data: &mut [T], bits: &[usize], offset: usize, threads: usize) {
     if threads > 1 {
         let n = data.len();
         if n == 2 {
             let (l_data, r_data) = data.split_at_mut(1);
             let offset = (((1 - bits[0]) * bits[1]) ^ offset) as i8;
-            T::oswap(offset == 1, &mut l_data[0], &mut r_data[0]);
+            ops::swap(offset == 1, &mut l_data[0], &mut r_data[0]);
         } else if n > 2 {
             let m: usize = bits[0..(n / 2)].iter().sum();
             let (l_data, r_data) = data.split_at_mut(n / 2);
@@ -67,7 +62,7 @@ fn parallel_or_off_compact<T: ObliviousOps + Send>(
             s ^= offset >= n / 2;
             for i in 0..(n / 2) {
                 let b = s ^ (i >= (offset + m) % (n / 2));
-                T::oswap(b, &mut l_data[i], &mut r_data[i]);
+                ops::swap(b, &mut l_data[i], &mut r_data[i]);
             }
         }
     } else {
@@ -75,12 +70,12 @@ fn parallel_or_off_compact<T: ObliviousOps + Send>(
     }
 }
 
-fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize) {
+fn or_off_compact<T>(data: &mut [T], bits: &[usize], offset: usize) {
     let n = data.len();
     if n == 2 {
         let (l_data, r_data) = data.split_at_mut(1);
         let b = (((1 - bits[0]) * bits[1]) ^ offset) as i8;
-        T::oswap(b == 1, &mut l_data[0], &mut r_data[0]);
+        ops::swap(b == 1, &mut l_data[0], &mut r_data[0]);
     } else if n > 2 {
         let m: usize = bits[0..(n / 2)].iter().sum();
         let (l_data, r_data) = data.split_at_mut(n / 2);
@@ -92,7 +87,7 @@ fn or_off_compact<T: ObliviousOps>(data: &mut [T], bits: &[usize], offset: usize
         s ^= offset >= n / 2;
         for i in 0..(n / 2) {
             let b = s ^ (i >= (offset + m) % (n / 2));
-            T::oswap(b, &mut l_data[i], &mut r_data[i]);
+            ops::swap(b, &mut l_data[i], &mut r_data[i]);
         }
     }
 }
@@ -106,10 +101,33 @@ mod tests {
 
     #[bench]
     fn bench_or_compact(b: &mut Bencher) {
-        let size = 0x800000;
+        let size = 0x100000;
         let mut v: Vec<i64> = (0..size).collect();
         let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
 
         b.iter(|| parallel_or_compact(&mut v[..], &bits[..], 8))
+    }
+
+    struct BigElem {
+        key: u64,
+        _dum: [u64; 15],
+    }
+
+    impl BigElem {
+        fn new(id: u64) -> Self {
+            BigElem {
+                key: id,
+                _dum: [0; 15],
+            }
+        }
+    }
+
+    #[bench]
+    fn bench_big_or_compact(b: &mut Bencher) {
+        let size = 0x100000;
+        let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
+        let mut bits: Vec<usize> = v.iter().map(|x| (x.key % 2).try_into().unwrap()).collect();
+
+        b.iter(|| parallel_or_compact(&mut v[..], &mut bits[..], 8))
     }
 }

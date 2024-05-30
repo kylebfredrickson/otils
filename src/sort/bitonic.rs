@@ -1,4 +1,4 @@
-use crate::ObliviousOps;
+use crate::ops;
 use std::thread;
 
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
@@ -8,11 +8,7 @@ fn is_power_of_2(len: usize) -> bool {
     len != 0 && len & (len - 1) == 0
 }
 
-pub fn parallel_bitonic_sort<T: ObliviousOps + PartialOrd + Send>(
-    list: &mut [T],
-    cond: bool,
-    threads: usize,
-) {
+pub fn parallel_bitonic_sort<T: PartialOrd + Send>(list: &mut [T], cond: bool, threads: usize) {
     assert!(is_power_of_2(list.len()));
 
     if threads > 1 {
@@ -24,7 +20,7 @@ pub fn parallel_bitonic_sort<T: ObliviousOps + PartialOrd + Send>(
 
             thread::scope(|s| {
                 s.spawn(|| parallel_bitonic_sort(l_half, cond, l_threads));
-                parallel_bitonic_sort(r_half, !cond, r_threads)
+                parallel_bitonic_sort(r_half, !cond, r_threads);
             });
             parallel_bitonic_merge(l_half, r_half, cond, threads);
         }
@@ -33,7 +29,7 @@ pub fn parallel_bitonic_sort<T: ObliviousOps + PartialOrd + Send>(
     }
 }
 
-fn parallel_bitonic_merge<T: ObliviousOps + PartialOrd + Send>(
+fn parallel_bitonic_merge<T: PartialOrd + Send>(
     l_half: &mut [T],
     r_half: &mut [T],
     cond: bool,
@@ -41,7 +37,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + PartialOrd + Send>(
 ) {
     if threads > 1 {
         if l_half.len() >= 1 && r_half.len() >= 1 {
-            bitonic_pass(l_half, r_half, cond);
+            parallel_bitonic_pass(l_half, r_half, cond, threads);
 
             let l_threads = threads / 2;
             let r_threads = threads - l_threads;
@@ -51,7 +47,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + PartialOrd + Send>(
                     parallel_bitonic_merge(ll_quarter, lr_quarter, cond, l_threads)
                 });
                 let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
-                parallel_bitonic_merge(rl_quarter, rr_quarter, cond, r_threads)
+                parallel_bitonic_merge(rl_quarter, rr_quarter, cond, r_threads);
             });
         }
     } else {
@@ -59,7 +55,7 @@ fn parallel_bitonic_merge<T: ObliviousOps + PartialOrd + Send>(
     }
 }
 
-pub fn bitonic_sort<T: ObliviousOps + PartialOrd>(list: &mut [T], cond: bool) {
+pub fn bitonic_sort<T: PartialOrd>(list: &mut [T], cond: bool) {
     if list.len() > 1 {
         let (l_half, r_half) = list.split_at_mut(list.len() / 2);
         bitonic_sort(l_half, cond);
@@ -68,7 +64,7 @@ pub fn bitonic_sort<T: ObliviousOps + PartialOrd>(list: &mut [T], cond: bool) {
     }
 }
 
-fn bitonic_merge<T: ObliviousOps + PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
+fn bitonic_merge<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
     if l_half.len() >= 1 && r_half.len() >= 1 {
         bitonic_pass(l_half, r_half, cond);
 
@@ -79,10 +75,32 @@ fn bitonic_merge<T: ObliviousOps + PartialOrd>(l_half: &mut [T], r_half: &mut [T
     }
 }
 
+// This makes it slower for some reason.
+fn parallel_bitonic_pass<T: PartialOrd + Send>(
+    l_half: &mut [T],
+    r_half: &mut [T],
+    cond: bool,
+    threads: usize,
+) {
+    // need to check that the chunks are big enough also
+    if threads > 1 {
+        let l_threads = threads / 2;
+        let r_threads = threads - l_threads;
+        let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
+        let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
+        thread::scope(|s| {
+            s.spawn(|| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, l_threads));
+            parallel_bitonic_pass(lr_quarter, rr_quarter, cond, r_threads);
+        });
+    } else {
+        bitonic_pass(l_half, r_half, cond);
+    }
+}
+
 #[inline]
-fn bitonic_pass<T: ObliviousOps + PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
+fn bitonic_pass<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
     for i in 0..l_half.len() {
-        T::oswap(
+        ops::swap(
             (l_half[i] < r_half[i]) ^ cond,
             &mut l_half[i],
             &mut r_half[i],
@@ -101,7 +119,40 @@ mod tests {
     fn bench_bitonic_sort(b: &mut Bencher) {
         let size = 0x100000;
         let mut v: Vec<i64> = (0..size).rev().collect();
-        let v = &mut v[..];
+
+        b.iter(|| parallel_bitonic_sort(&mut v[..], true, 8));
+    }
+
+    struct BigElem {
+        key: u64,
+        _dum: [u64; 15],
+    }
+
+    impl BigElem {
+        fn new(id: u64) -> Self {
+            BigElem {
+                key: id,
+                _dum: [0; 15],
+            }
+        }
+    }
+
+    impl PartialEq for BigElem {
+        fn eq(&self, other: &Self) -> bool {
+            self.key == other.key
+        }
+    }
+
+    impl PartialOrd for BigElem {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            self.key.partial_cmp(&other.key)
+        }
+    }
+
+    #[bench]
+    fn bench_big_bitonic_sort(b: &mut Bencher) {
+        let size = 0x100000;
+        let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
 
         b.iter(|| parallel_bitonic_sort(&mut v[..], true, 8));
     }

@@ -1,8 +1,6 @@
-use crate::ObliviousOps;
-
 mod or_compact;
 
-pub fn ocompact<T: ObliviousOps + Send, F>(data: &mut [T], f: F, threads: usize)
+pub fn compact<T: Send, F>(data: &mut [T], f: F, threads: usize)
 where
     F: Fn(&T) -> bool,
 {
@@ -20,7 +18,7 @@ mod tests {
             ($v: expr, $f: expr, $t: ty) => {
                 let mut data: Vec<$t> = $v.into_iter().collect();
                 let real: Vec<$t> = $v.into_iter().filter(|x| $f(x)).collect();
-                ocompact(&mut data[..], $f, 2);
+                compact(&mut data[..], $f, 2);
                 assert_eq!(&data[0..real.len()], &real[..]);
             };
         }
