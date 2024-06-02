@@ -1,10 +1,13 @@
 mod bitonic;
-mod padded_bitonic;
 use bitonic::parallel_bitonic_sort;
+use num::traits::Bounded;
 
-pub fn sort<T: PartialOrd + Send>(list: &mut [T], threads: usize) {
-    assert!(list.len().next_power_of_two() == list.len());
-    parallel_bitonic_sort(list, true, threads);
+pub fn sort<T: PartialOrd + Send + Bounded>(mut list: Vec<T>, threads: usize) -> Vec<T> {
+    let remaining = list.len().next_power_of_two() - list.len();
+    list.reserve(remaining);
+    list.extend((0..remaining).map(|_| T::max_value()));
+    parallel_bitonic_sort(&mut list[..], true, threads);
+    list
 }
 
 #[cfg(test)]
@@ -17,9 +20,9 @@ mod tests {
 
     #[test]
     fn test_sort() {
-        let mut a: Vec<i64> = (0..127).rev().collect();
+        let a: Vec<i64> = (0..127).rev().collect();
 
-        sort(&mut a[..], 2);
+        let a = sort(a, 2);
         assert!(is_sorted(&a));
     }
 }
