@@ -1,9 +1,8 @@
 mod bitonic;
 mod padded_bitonic;
 use bitonic::parallel_bitonic_sort;
-use num::traits::Bounded;
 
-pub fn sort<T: PartialOrd + Send + Bounded>(list: &mut [T], threads: usize) {
+pub fn sort<T: PartialOrd + Send>(list: &mut [T], threads: usize) {
     assert!(list.len().next_power_of_two() == list.len());
     parallel_bitonic_sort(list, true, threads);
 }
