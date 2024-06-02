@@ -1,161 +1,82 @@
 use std::arch::asm;
 
-// pub fn swap_i8(cond: bool, a: &mut i8, b: &mut i8) {
-//     let cond = cond as u8;
-//     let a = a as *mut i8 as *mut i16;
-//     let b = b as *mut i8 as *mut i16;
-//     unsafe {
-//         asm!(
-//             "test {cond}, {cond}",
-//             "cmovnz {a:x}, {b:x}",
-//             "cmovnz {b:x}, {tmp:x}",
-//             cond = in(reg_byte) cond,
-//             a = inout(reg) *a,
-//             b = inout(reg) *b,
-//             tmp = in(reg) *a,
-//         );
-//     }
-// }
+pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
+    assert!(std::mem::size_of::<T>() % 8 == 0);
 
-// pub fn swap_u8(cond: bool, a: &mut u8, b: &mut u8) {
-//     let cond = cond as u8;
-//     unsafe {
-//         asm!(
-//             "movzx {a}, {an}",
-//             "movzx {b}, {bn}",
-//             "mov {tmp}, {tmpn}",
-//             "test {cond}, {cond}",
-//             "cmovnz {an}, {bn}",
-//             "cmovnz {bn}, {tmpn}",
-//             "mov {an}, {a}",
-//             "mov {bn}, {b}",
-//             cond = in(reg_byte) cond,
-//             a = inout(reg_byte) *a,
-//             b = inout(reg_byte) *b,
-//             tmp = in(reg_byte) *a,
-//             an = out(reg) _,
-//             bn = out(reg) _,
-//             tmpn = out(reg) _,
-//         );
-//     }
-// }
+    let mut remaining_blocks = std::mem::size_of::<T>() / 8;
 
-pub fn swap_i16(cond: bool, a: &mut i16, b: &mut i16) {
+    let mut a_ptr = a as *mut T as *mut i64;
+    let mut b_ptr = b as *mut T as *mut i64;
     let cond = cond as u8;
+
     unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:x}, {b:x}",
-            "cmovnz {b:x}, {tmp:x}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
+        while remaining_blocks > 0 {
+            swap64(cond, a_ptr, b_ptr);
+            a_ptr = a_ptr.add(1);
+            b_ptr = b_ptr.add(1);
+            remaining_blocks -= 1;
+        }
     }
 }
 
-pub fn swap_u16(cond: bool, a: &mut u16, b: &mut u16) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:x}, {b:x}",
-            "cmovnz {b:x}, {tmp:x}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
+unsafe fn swap64(cond: u8, a: *mut i64, b: *mut i64) {
+    asm!(
+        "test {cond}, {cond}",
+        "cmovnz {a:r}, {b:r}",
+        "cmovnz {b:r}, {tmp:r}",
+        cond = in(reg_byte) cond,
+        tmp = in(reg) *a,
+        a = inout(reg) *a,
+        b = inout(reg) *b,
+    );
 }
 
-pub fn swap_i32(cond: bool, a: &mut i32, b: &mut i32) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:e}, {b:e}",
-            "cmovnz {b:e}, {tmp:e}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
-}
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-pub fn swap_u32(cond: bool, a: &mut u32, b: &mut u32) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:e}, {b:e}",
-            "cmovnz {b:e}, {tmp:e}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
-}
+    extern crate test;
+    use test::Bencher;
 
-pub fn swap_i64(cond: bool, a: &mut i64, b: &mut i64) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:r}, {b:r}",
-            "cmovnz {b:r}, {tmp:r}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
-}
+    #[test]
+    fn test_swap() {
+        macro_rules! test_swap {
+            ($t: ty, $a: expr, $b: expr) => {
+                let mut a = $a;
+                let mut b = $b;
 
-pub fn swap_u64(cond: bool, a: &mut u64, b: &mut u64) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:r}, {b:r}",
-            "cmovnz {b:r}, {tmp:r}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
-}
+                swap(false, &mut a, &mut b);
+                assert_eq!((a, b), ($a, $b));
 
-pub fn swap_isize(cond: bool, a: &mut isize, b: &mut isize) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:r}, {b:r}",
-            "cmovnz {b:r}, {tmp:r}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
-    }
-}
+                swap(true, &mut a, &mut b);
+                assert_eq!((a, b), ($b, $a));
+            };
+        }
 
-pub fn swap_usize(cond: bool, a: &mut usize, b: &mut usize) {
-    let cond = cond as u8;
-    unsafe {
-        asm!(
-            "test {cond}, {cond}",
-            "cmovnz {a:r}, {b:r}",
-            "cmovnz {b:r}, {tmp:r}",
-            cond = in(reg_byte) cond,
-            tmp = in(reg) *a,
-            a = inout(reg) *a,
-            b = inout(reg) *b,
-        );
+        test_swap!(i64, -5, 4);
+        test_swap!(isize, -5, 4);
+        test_swap!(u64, 5, 4);
+        test_swap!(usize, 5, 4);
+    }
+
+    #[repr(align(64))]
+    struct BigElem {
+        _key: u64,
+        _dum: [u64; 31],
+    }
+
+    #[bench]
+    fn bench_swap(bench: &mut Bencher) {
+        let mut a = BigElem {
+            _key: 0,
+            _dum: [0; 31],
+        };
+
+        let mut b = BigElem {
+            _key: 1,
+            _dum: [1; 31],
+        };
+
+        bench.iter(|| swap(true, &mut a, &mut b));
     }
 }

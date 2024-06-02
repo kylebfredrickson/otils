@@ -1,9 +1,6 @@
 mod or_compact;
 
-pub fn compact<T: Send, F>(data: &mut [T], f: F, threads: usize)
-where
-    F: Fn(&T) -> bool,
-{
+pub fn compact<T: Send>(data: &mut [T], f: fn(&T) -> bool, threads: usize) {
     let bits: Vec<usize> = data.iter().map(|x| f(x).try_into().unwrap()).collect();
     or_compact::parallel_or_compact(&mut data[..], &bits[..], threads);
 }
