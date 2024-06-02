@@ -1,13 +1,8 @@
 mod bitonic;
-use crate::Max;
 use bitonic::parallel_bitonic_sort;
 
-pub fn sort<T: PartialOrd + Send + Max>(mut list: Vec<T>, threads: usize) -> Vec<T> {
-    let remaining = list.len().next_power_of_two() - list.len();
-    list.reserve(remaining);
-    list.extend((0..remaining).map(|_| T::maximum()));
-    parallel_bitonic_sort(&mut list[..], true, threads);
-    list
+pub fn sort<T: PartialOrd + Send>(list: &mut [T], threads: usize) {
+    parallel_bitonic_sort(list, true, threads);
 }
 
 #[cfg(test)]
@@ -20,9 +15,9 @@ mod tests {
 
     #[test]
     fn test_sort() {
-        let a: Vec<i64> = (0..127).rev().collect();
+        let mut a: Vec<i64> = (0..127).rev().collect();
 
-        let a = sort(a, 2);
+        sort(&mut a[..], 2);
         assert!(is_sorted(&a));
     }
 }
