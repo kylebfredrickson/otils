@@ -42,8 +42,8 @@ mod tests {
     fn test_swap() {
         macro_rules! test_swap {
             ($t: ty, $a: expr, $b: expr) => {
-                let mut a = $a;
-                let mut b = $b;
+                let mut a = $a as $t;
+                let mut b = $b as $t;
 
                 swap(false, &mut a, &mut b);
                 assert_eq!((a, b), ($a, $b));

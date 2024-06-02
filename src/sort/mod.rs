@@ -1,11 +1,11 @@
 mod bitonic;
+use crate::Max;
 use bitonic::parallel_bitonic_sort;
-use num::traits::Bounded;
 
-pub fn sort<T: PartialOrd + Send + Bounded>(mut list: Vec<T>, threads: usize) -> Vec<T> {
+pub fn sort<T: PartialOrd + Send + Max>(mut list: Vec<T>, threads: usize) -> Vec<T> {
     let remaining = list.len().next_power_of_two() - list.len();
     list.reserve(remaining);
-    list.extend((0..remaining).map(|_| T::max_value()));
+    list.extend((0..remaining).map(|_| T::maximum()));
     parallel_bitonic_sort(&mut list[..], true, threads);
     list
 }
