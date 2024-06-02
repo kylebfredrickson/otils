@@ -37,7 +37,7 @@ fn parallel_bitonic_merge<T: PartialOrd + Send>(
         return;
     }
 
-    if l_half.len() <= 1 || r_half.len() <= 1 {
+    if l_half.len() < 1 || r_half.len() < 1 {
         return;
     }
 
@@ -67,7 +67,7 @@ pub fn bitonic_sort<T: PartialOrd>(list: &mut [T], cond: bool) {
 }
 
 fn bitonic_merge<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
-    if l_half.len() <= 1 || r_half.len() <= 1 {
+    if l_half.len() < 1 || r_half.len() < 1 {
         return;
     }
 
