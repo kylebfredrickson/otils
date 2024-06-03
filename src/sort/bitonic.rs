@@ -154,7 +154,7 @@ mod tests {
 
     #[bench]
     fn bench_big_bitonic_sort(b: &mut Bencher) {
-        let size = 0x100000;
+        let size = 0x80000;
         let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
 
         b.iter(|| parallel_bitonic_sort(&mut v[..], true, 8));
