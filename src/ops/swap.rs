@@ -1,5 +1,10 @@
 use std::arch::asm;
 
+#[link(name = "ops", kind = "static")]
+extern "C" {
+    fn swap8(cond: u8, a: *mut u8, b: *mut u8);
+}
+
 pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
     assert!(std::mem::size_of::<T>() % 8 == 0);
 
@@ -15,6 +20,22 @@ pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
             a_ptr = a_ptr.add(1);
             b_ptr = b_ptr.add(1);
             remaining_blocks -= 1;
+        }
+    }
+}
+
+// slower
+pub fn swap2<T>(cond: bool, a: &mut T, b: &mut T) {
+    let mut remaining = std::mem::size_of::<T>();
+    let mut a_ptr = a as *mut T as *mut u8;
+    let mut b_ptr = b as *mut T as *mut u8;
+    let cond = cond as u8;
+    unsafe {
+        while remaining > 0 {
+            swap8(cond, a_ptr, b_ptr);
+            a_ptr = a_ptr.add(1);
+            b_ptr = b_ptr.add(1);
+            remaining -= 1;
         }
     }
 }
@@ -59,24 +80,41 @@ mod tests {
         test_swap!(usize, 5, 4);
     }
 
+    const SIZE: usize = 127;
+
     #[repr(align(64))]
     struct BigElem {
         _key: u64,
-        _dum: [u64; 31],
+        _dum: [u64; SIZE],
     }
 
     #[bench]
     fn bench_swap(bench: &mut Bencher) {
         let mut a = BigElem {
             _key: 0,
-            _dum: [0; 31],
+            _dum: [0; SIZE],
         };
 
         let mut b = BigElem {
             _key: 1,
-            _dum: [1; 31],
+            _dum: [1; SIZE],
         };
 
         bench.iter(|| swap(true, &mut a, &mut b));
+    }
+
+    #[bench]
+    fn bench_swap2(bench: &mut Bencher) {
+        let mut a = BigElem {
+            _key: 0,
+            _dum: [0; SIZE],
+        };
+
+        let mut b = BigElem {
+            _key: 1,
+            _dum: [1; SIZE],
+        };
+
+        bench.iter(|| swap2(true, &mut a, &mut b));
     }
 }
