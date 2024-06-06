@@ -3,12 +3,16 @@ use crate::Max;
 use bitonic::parallel_bitonic_sort;
 use rayon::ThreadPool;
 
-pub fn sort<T: PartialOrd + Send + Max>(mut list: Vec<T>, pool: &ThreadPool) -> Vec<T> {
+pub fn sort<T: PartialOrd + Send + Max>(
+    mut list: Vec<T>,
+    pool: &ThreadPool,
+    threads: usize,
+) -> Vec<T> {
     let list_len = list.len();
     let remaining = list_len.next_power_of_two() - list_len;
     list.extend((0..remaining).map(|_| T::maximum()));
 
-    parallel_bitonic_sort(&mut list[..], true, pool);
+    parallel_bitonic_sort(&mut list[..], true, pool, threads);
     list.truncate(list_len);
     list
 }
@@ -29,7 +33,7 @@ mod tests {
             .unwrap();
         let a: Vec<i64> = (0..125).rev().collect();
 
-        let a = sort(a, &pool);
+        let a = sort(a, &pool, 2);
         assert!(is_sorted(&a));
     }
 }

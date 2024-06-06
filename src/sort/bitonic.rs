@@ -1,13 +1,16 @@
 use crate::ops;
 use rayon::ThreadPool;
 
-const THRESHOLD: usize = 65536;
-
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
 // TODO: check the number of spawned threads.
 
-pub fn parallel_bitonic_sort<T: PartialOrd + Send>(data: &mut [T], cond: bool, pool: &ThreadPool) {
-    if data.len() <= THRESHOLD {
+pub fn parallel_bitonic_sort<T: PartialOrd + Send>(
+    data: &mut [T],
+    cond: bool,
+    pool: &ThreadPool,
+    threads: usize,
+) {
+    if threads <= 1 {
         bitonic_sort(data, cond);
         return;
     }
@@ -17,12 +20,14 @@ pub fn parallel_bitonic_sort<T: PartialOrd + Send>(data: &mut [T], cond: bool, p
     }
 
     let (l_half, r_half) = data.split_at_mut(data.len() / 2);
+    let l_threads = threads / 2;
+    let r_threads = threads - l_threads;
 
     pool.scope(|s| {
-        s.spawn(|_| parallel_bitonic_sort(l_half, cond, pool));
-        s.spawn(|_| parallel_bitonic_sort(r_half, !cond, pool));
+        s.spawn(|_| parallel_bitonic_sort(l_half, cond, pool, l_threads));
+        s.spawn(|_| parallel_bitonic_sort(r_half, !cond, pool, r_threads));
     });
-    parallel_bitonic_merge(l_half, r_half, cond, pool);
+    parallel_bitonic_merge(l_half, r_half, cond, pool, threads);
 }
 
 fn parallel_bitonic_merge<T: PartialOrd + Send>(
@@ -30,8 +35,9 @@ fn parallel_bitonic_merge<T: PartialOrd + Send>(
     r_half: &mut [T],
     cond: bool,
     pool: &ThreadPool,
+    threads: usize,
 ) {
-    if l_half.len() <= THRESHOLD / 2 {
+    if threads <= 1 {
         bitonic_merge(l_half, r_half, cond);
         return;
     }
@@ -40,16 +46,18 @@ fn parallel_bitonic_merge<T: PartialOrd + Send>(
         return;
     }
 
-    parallel_bitonic_pass(l_half, r_half, cond, pool);
+    parallel_bitonic_pass(l_half, r_half, cond, pool, threads);
+    let l_threads = threads / 2;
+    let r_threads = threads - l_threads;
 
     pool.scope(|s| {
         s.spawn(|_| {
             let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
-            parallel_bitonic_merge(ll_quarter, lr_quarter, cond, pool)
+            parallel_bitonic_merge(ll_quarter, lr_quarter, cond, pool, l_threads)
         });
         s.spawn(|_| {
             let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
-            parallel_bitonic_merge(rl_quarter, rr_quarter, cond, pool)
+            parallel_bitonic_merge(rl_quarter, rr_quarter, cond, pool, r_threads)
         });
     });
 }
@@ -83,8 +91,9 @@ fn parallel_bitonic_pass<T: PartialOrd + Send>(
     r_half: &mut [T],
     cond: bool,
     pool: &ThreadPool,
+    threads: usize,
 ) {
-    if l_half.len() <= THRESHOLD / 2 {
+    if threads <= 1 {
         bitonic_pass(l_half, r_half, cond);
         return;
     }
@@ -96,12 +105,14 @@ fn parallel_bitonic_pass<T: PartialOrd + Send>(
     //         &mut r_half[i],
     //     );
     // });
+    let l_threads = threads / 2;
+    let r_threads = threads - l_threads;
 
     let (ll_quarter, lr_quarter) = l_half.split_at_mut(l_half.len() / 2);
     let (rl_quarter, rr_quarter) = r_half.split_at_mut(r_half.len() / 2);
     pool.scope(|s| {
-        s.spawn(|_| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, pool));
-        s.spawn(|_| parallel_bitonic_pass(lr_quarter, rr_quarter, cond, pool));
+        s.spawn(|_| parallel_bitonic_pass(ll_quarter, rl_quarter, cond, pool, l_threads));
+        s.spawn(|_| parallel_bitonic_pass(lr_quarter, rr_quarter, cond, pool, r_threads));
     });
 }
 
@@ -126,14 +137,14 @@ mod tests {
     #[bench]
     fn bench_bitonic_sort(b: &mut Bencher) {
         let pool = rayon::ThreadPoolBuilder::new()
-            .num_threads(6)
+            .num_threads(8)
             .build()
             .unwrap();
 
         let size = 0x100000;
         let mut v: Vec<i64> = (0..size).rev().collect();
 
-        b.iter(|| parallel_bitonic_sort(&mut v[..], true, &pool));
+        b.iter(|| parallel_bitonic_sort(&mut v[..], true, &pool, 8));
     }
 
     struct BigElem {
@@ -171,6 +182,6 @@ mod tests {
         let size = 0x100000;
         let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
 
-        b.iter(|| parallel_bitonic_sort(&mut v[..], true, &pool));
+        b.iter(|| parallel_bitonic_sort(&mut v[..], true, &pool, 8));
     }
 }

@@ -1,10 +1,15 @@
 use crate::ops;
 use rayon::ThreadPool;
 
-pub fn parallel_or_compact<T: Send>(data: &mut [T], bits: &[usize], pool: &ThreadPool) {
+pub fn parallel_or_compact<T: Send>(
+    data: &mut [T],
+    bits: &[usize],
+    pool: &ThreadPool,
+    threads: usize,
+) {
     let n = data.len();
 
-    if n <= 131072 {
+    if threads <= 1 {
         or_compact(data, bits);
         return;
     }
@@ -20,8 +25,8 @@ pub fn parallel_or_compact<T: Send>(data: &mut [T], bits: &[usize], pool: &Threa
     let (l_data, r_data) = data.split_at_mut(n2);
     let (l_bits, r_bits) = bits.split_at(n2);
     pool.scope(|s| {
-        s.spawn(|_| parallel_or_compact(l_data, l_bits, pool));
-        s.spawn(|_| parallel_or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1, pool));
+        or_compact(l_data, l_bits);
+        s.spawn(|_| parallel_or_off_compact(r_data, r_bits, (n1 - n2 + m) % n1, pool, threads));
     });
     for i in 0..n2 {
         ops::swap(i >= m, &mut l_data[i], &mut r_data[n1 - n2 + i]);
@@ -53,12 +58,13 @@ fn parallel_or_off_compact<T: Send>(
     bits: &[usize],
     offset: usize,
     pool: &ThreadPool,
+    threads: usize,
 ) {
-    let n = data.len();
-    if n <= 131072 {
+    if threads <= 1 {
         or_off_compact(data, bits, offset);
         return;
     }
+    let n = data.len();
 
     if n == 2 {
         let (l_data, r_data) = data.split_at_mut(1);
@@ -68,10 +74,14 @@ fn parallel_or_off_compact<T: Send>(
         let m: usize = bits[0..(n / 2)].iter().sum();
         let (l_data, r_data) = data.split_at_mut(n / 2);
         let (l_bits, r_bits) = bits.split_at(n / 2);
+        let l_threads = threads / 2;
+        let r_threads = threads - l_threads;
 
         pool.scope(|s| {
-            s.spawn(|_| parallel_or_off_compact(l_data, l_bits, offset % (n / 2), pool));
-            s.spawn(|_| parallel_or_off_compact(r_data, r_bits, (offset + m) % (n / 2), pool));
+            s.spawn(|_| parallel_or_off_compact(l_data, l_bits, offset % (n / 2), pool, l_threads));
+            s.spawn(|_| {
+                parallel_or_off_compact(r_data, r_bits, (offset + m) % (n / 2), pool, r_threads)
+            });
         });
 
         let mut s = (offset % (n / 2)) + m >= n / 2;
@@ -122,7 +132,7 @@ mod tests {
         let mut v: Vec<i64> = (0..size).collect();
         let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
 
-        b.iter(|| parallel_or_compact(&mut v[..], &bits[..], &pool))
+        b.iter(|| parallel_or_compact(&mut v[..], &bits[..], &pool, 8))
     }
 
     struct BigElem {
@@ -149,6 +159,6 @@ mod tests {
         let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
         let mut bits: Vec<usize> = v.iter().map(|x| (x.key % 2).try_into().unwrap()).collect();
 
-        b.iter(|| parallel_or_compact(&mut v[..], &mut bits[..], &pool))
+        b.iter(|| parallel_or_compact(&mut v[..], &mut bits[..], &pool, 8))
     }
 }
