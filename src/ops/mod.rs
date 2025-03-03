@@ -8,7 +8,7 @@ pub trait ObliviousOps {
 
 #[link(name = "ops", kind = "static")]
 extern "C" {
-    // fn select_8(cond: bool, a: i8, b: i8) -> i8;
+    fn select_8(cond: bool, a: i8, b: i8) -> i8;
     fn select_16(cond: bool, a: i16, b: i16) -> i16;
     fn select_32(cond: bool, a: i32, b: i32) -> i32;
     fn select_64(cond: bool, a: i64, b: i64) -> i64;
@@ -39,8 +39,8 @@ macro_rules! impl_ops {
     };
 }
 
-// impl_ops!(i8, i8, select_8, swap_i8);
-// impl_ops!(u8, i8, select_8, swap_u8);
+impl_ops!(i8, i8, select_8);
+impl_ops!(u8, i8, select_8);
 impl_ops!(i16, i16, select_16);
 impl_ops!(u16, i16, select_16);
 impl_ops!(i32, i32, select_32);

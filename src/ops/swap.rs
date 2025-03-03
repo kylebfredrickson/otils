@@ -1,8 +1,9 @@
-use std::arch::asm;
+// use std::arch::asm;
 
 #[link(name = "ops", kind = "static")]
 extern "C" {
-    fn swap8(cond: u8, a: *mut u8, b: *mut u8);
+    // fn swap8(cond: u8, a: *mut u8, b: *mut u8);
+    fn swap64(cond: u8, a: *mut u64, b: *mut u64);
 }
 
 pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
@@ -10,8 +11,8 @@ pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
 
     let mut remaining_blocks = std::mem::size_of::<T>() / 8;
 
-    let mut a_ptr = a as *mut T as *mut i64;
-    let mut b_ptr = b as *mut T as *mut i64;
+    let mut a_ptr = a as *mut T as *mut u64;
+    let mut b_ptr = b as *mut T as *mut u64;
     let cond = cond as u8;
 
     unsafe {
@@ -24,33 +25,33 @@ pub fn swap<T>(cond: bool, a: &mut T, b: &mut T) {
     }
 }
 
-// slower
-pub fn swap2<T>(cond: bool, a: &mut T, b: &mut T) {
-    let mut remaining = std::mem::size_of::<T>();
-    let mut a_ptr = a as *mut T as *mut u8;
-    let mut b_ptr = b as *mut T as *mut u8;
-    let cond = cond as u8;
-    unsafe {
-        while remaining > 0 {
-            swap8(cond, a_ptr, b_ptr);
-            a_ptr = a_ptr.add(1);
-            b_ptr = b_ptr.add(1);
-            remaining -= 1;
-        }
-    }
-}
+// // slower
+// pub fn swap2<T>(cond: bool, a: &mut T, b: &mut T) {
+//     let mut remaining = std::mem::size_of::<T>();
+//     let mut a_ptr = a as *mut T as *mut u8;
+//     let mut b_ptr = b as *mut T as *mut u8;
+//     let cond = cond as u8;
+//     unsafe {
+//         while remaining > 0 {
+//             swap8(cond, a_ptr, b_ptr);
+//             a_ptr = a_ptr.add(1);
+//             b_ptr = b_ptr.add(1);
+//             remaining -= 1;
+//         }
+//     }
+// }
 
-unsafe fn swap64(cond: u8, a: *mut i64, b: *mut i64) {
-    asm!(
-        "test {cond}, {cond}",
-        "cmovnz {a:r}, {b:r}",
-        "cmovnz {b:r}, {tmp:r}",
-        cond = in(reg_byte) cond,
-        tmp = in(reg) *a,
-        a = inout(reg) *a,
-        b = inout(reg) *b,
-    );
-}
+// unsafe fn swap64(cond: u8, a: *mut i64, b: *mut i64) {
+//     asm!(
+//         "test {cond}, {cond}",
+//         "cmovnz {a:r}, {b:r}",
+//         "cmovnz {b:r}, {tmp:r}",
+//         cond = in(reg_byte) cond,
+//         tmp = in(reg) *a,
+//         a = inout(reg) *a,
+//         b = inout(reg) *b,
+//     );
+// }
 
 #[cfg(test)]
 mod tests {
@@ -103,18 +104,18 @@ mod tests {
         bench.iter(|| swap(true, &mut a, &mut b));
     }
 
-    #[bench]
-    fn bench_swap2(bench: &mut Bencher) {
-        let mut a = BigElem {
-            _key: 0,
-            _dum: [0; SIZE],
-        };
+    // #[bench]
+    // fn bench_swap2(bench: &mut Bencher) {
+    //     let mut a = BigElem {
+    //         _key: 0,
+    //         _dum: [0; SIZE],
+    //     };
 
-        let mut b = BigElem {
-            _key: 1,
-            _dum: [1; SIZE],
-        };
+    //     let mut b = BigElem {
+    //         _key: 1,
+    //         _dum: [1; SIZE],
+    //     };
 
-        bench.iter(|| swap2(true, &mut a, &mut b));
-    }
+    //     bench.iter(|| swap2(true, &mut a, &mut b));
+    // }
 }
