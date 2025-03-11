@@ -18,9 +18,9 @@ pub fn parallel_or_compact<T: Send>(
         return;
     }
 
-    let n1: usize = 1 << usize::ilog2(data.len());
+    let n1 = 1 << usize::ilog2(data.len());
     let n2 = n - n1;
-    let m: usize = bits[0..n2].iter().sum();
+    let m = bits[0..n2].iter().sum();
 
     let (l_data, r_data) = data.split_at_mut(n2);
     let (l_bits, r_bits) = bits.split_at(n2);
@@ -97,7 +97,7 @@ fn or_off_compact<T>(data: &mut [T], bits: &[usize], offset: usize) {
     let n = data.len();
     if n == 2 {
         let (l_data, r_data) = data.split_at_mut(1);
-        let b = (((1 - bits[0]) * bits[1]) ^ offset) as i8;
+        let b = ((1 - bits[0] as usize) * bits[1] as usize) ^ offset;
         ops::swap(b == 1, &mut l_data[0], &mut r_data[0]);
     } else if n > 2 {
         let m: usize = bits[0..(n / 2)].iter().sum();
@@ -129,19 +129,19 @@ mod tests {
             .build()
             .unwrap();
         let size = 0x100000;
-        let mut v: Vec<i64> = (0..size).collect();
-        let bits: Vec<usize> = v.iter().map(|x| (x % 2).try_into().unwrap()).collect();
+        let mut v: Vec<usize> = (0..size).collect();
+        let bits: Vec<usize> = v.iter().map(|x| (x % 2)).collect();
 
         b.iter(|| parallel_or_compact(&mut v[..], &bits[..], &pool, 8))
     }
 
     struct BigElem {
-        key: u64,
+        key: usize,
         _dum: [u64; 15],
     }
 
     impl BigElem {
-        fn new(id: u64) -> Self {
+        fn new(id: usize) -> Self {
             BigElem {
                 key: id,
                 _dum: [0; 15],
@@ -157,7 +157,7 @@ mod tests {
             .unwrap();
         let size = 0x100000;
         let mut v: Vec<BigElem> = (0..size).rev().map(|i| BigElem::new(i)).collect();
-        let mut bits: Vec<usize> = v.iter().map(|x| (x.key % 2).try_into().unwrap()).collect();
+        let mut bits: Vec<usize> = v.iter().map(|x| (x.key % 2)).collect();
 
         b.iter(|| parallel_or_compact(&mut v[..], &mut bits[..], &pool, 8))
     }
