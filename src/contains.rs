@@ -1,8 +1,6 @@
 // SECURITY: Check this doesn't short circuit.
 pub fn contains<T: Eq>(list: &[T], item: &T) -> bool {
-    list.iter()
-        .fold(0u8, |acc, elem| acc | (elem == item) as u8)
-        == 1
+    list.iter().fold(false, |acc, elem| acc | (elem == item))
 }
 
 #[cfg(test)]

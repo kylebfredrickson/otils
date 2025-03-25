@@ -2,8 +2,7 @@ mod or_compact;
 use rayon::ThreadPool;
 
 pub fn compact<T: Send>(data: &mut [T], bits: &[usize], pool: &ThreadPool, threads: usize) {
-    // let bits: Vec<usize> = data.iter().map(|x| f(x).try_into().unwrap()).collect();
-    or_compact::parallel_or_compact(&mut data[..], &bits[..], pool, threads);
+    or_compact::parallel_or_compact(data, bits, pool, threads);
 }
 
 #[cfg(test)]
