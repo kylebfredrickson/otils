@@ -3,11 +3,7 @@ use crate::Max;
 use bitonic::parallel_bitonic_sort;
 use rayon::ThreadPool;
 
-pub fn sort<T: PartialOrd + Send + Max>(
-    mut list: Vec<T>,
-    pool: &ThreadPool,
-    threads: usize,
-) -> Vec<T> {
+pub fn sort<T: Ord + Send + Max>(mut list: Vec<T>, pool: &ThreadPool, threads: usize) -> Vec<T> {
     let list_len = list.len();
     let remaining = list_len.next_power_of_two() - list_len;
     list.extend((0..remaining).map(|_| T::maximum()));

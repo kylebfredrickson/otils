@@ -1,4 +1,6 @@
 mod swap;
+use std::cmp::Ordering;
+
 pub use swap::swap;
 // pub use swap::ObliviousSwap;
 
@@ -7,21 +9,11 @@ pub trait ObliviousOps {
 }
 
 #[link(name = "ops", kind = "static")]
-extern "C" {
-    fn select_8(cond: bool, a: i8, b: i8) -> i8;
-    fn select_16(cond: bool, a: i16, b: i16) -> i16;
-    fn select_32(cond: bool, a: i32, b: i32) -> i32;
-    fn select_64(cond: bool, a: i64, b: i64) -> i64;
-
-    // fn equal_8(a: i8, b: i8) -> bool;
-    // fn equal_16(a: i16, b: i16) -> bool;
-    // fn equal_32(a: i32, b: i32) -> bool;
-    // fn equal_64(a: i64, b: i64) -> bool;
-
-    // // fn compare_8(a: i8, b: i8) -> i8;
-    // fn compare_16(a: i16, b: i16) -> i8;
-    // fn compare_32(a: i32, b: i32) -> i8;
-    // fn compare_64(a: i64, b: i64) -> i8;
+unsafe extern "C" {
+    unsafe fn select_8(cond: bool, a: i8, b: i8) -> i8;
+    unsafe fn select_16(cond: bool, a: i16, b: i16) -> i16;
+    unsafe fn select_32(cond: bool, a: i32, b: i32) -> i32;
+    unsafe fn select_64(cond: bool, a: i64, b: i64) -> i64;
 }
 
 // This implements ObliviousOps for primitive types by calling out to C
@@ -50,6 +42,12 @@ impl_ops!(u64, i64, select_64);
 impl_ops!(isize, i64, select_64); // TODO this should be arch dependent.
 impl_ops!(usize, i64, select_64); // TODO this should be arch dependent.
 
+impl ObliviousOps for Ordering {
+    fn oselect(cond: bool, a: Self, b: Self) -> Self {
+        unsafe { select_8(cond, a as i8, b as i8).cmp(&0) }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     pub use super::*;
@@ -63,16 +61,20 @@ mod tests {
             };
         }
 
-        // test_select!(i8, -2, 1);
+        test_select!(i8, -2, 1);
         test_select!(i16, -2, 1);
         test_select!(i32, -2, 1);
         test_select!(i64, -2, 1);
         test_select!(isize, -2, 1);
 
-        // test_select!(u8, 2, 1);
+        test_select!(u8, 2, 1);
         test_select!(u16, 2, 1);
         test_select!(u32, 2, 1);
         test_select!(u64, 2, 1);
         test_select!(usize, 2, 1);
+
+        test_select!(Ordering, Ordering::Equal, Ordering::Less);
+        test_select!(Ordering, Ordering::Equal, Ordering::Greater);
+        test_select!(Ordering, Ordering::Less, Ordering::Greater);
     }
 }

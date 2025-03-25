@@ -4,7 +4,7 @@ use rayon::ThreadPool;
 // TODO: figure out why parallel_bitonic_linear_pass is slower.
 // TODO: check the number of spawned threads.
 
-pub fn parallel_bitonic_sort<T: PartialOrd + Send>(
+pub fn parallel_bitonic_sort<T: Ord + Send>(
     data: &mut [T],
     cond: bool,
     pool: &ThreadPool,
@@ -30,7 +30,7 @@ pub fn parallel_bitonic_sort<T: PartialOrd + Send>(
     parallel_bitonic_merge(l_half, r_half, cond, pool, threads);
 }
 
-fn parallel_bitonic_merge<T: PartialOrd + Send>(
+fn parallel_bitonic_merge<T: Ord + Send>(
     l_half: &mut [T],
     r_half: &mut [T],
     cond: bool,
@@ -62,7 +62,7 @@ fn parallel_bitonic_merge<T: PartialOrd + Send>(
     });
 }
 
-fn parallel_bitonic_pass<T: PartialOrd + Send>(
+fn parallel_bitonic_pass<T: Ord + Send>(
     l_half: &mut [T],
     r_half: &mut [T],
     cond: bool,
@@ -92,7 +92,7 @@ fn parallel_bitonic_pass<T: PartialOrd + Send>(
     });
 }
 
-pub fn bitonic_sort<T: PartialOrd>(list: &mut [T], cond: bool) {
+pub fn bitonic_sort<T: Ord>(list: &mut [T], cond: bool) {
     if list.len() <= 1 {
         return;
     }
@@ -103,7 +103,7 @@ pub fn bitonic_sort<T: PartialOrd>(list: &mut [T], cond: bool) {
     bitonic_merge(l_half, r_half, cond);
 }
 
-fn bitonic_merge<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
+fn bitonic_merge<T: Ord>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
     if l_half.len() < 1 {
         return;
     }
@@ -117,7 +117,7 @@ fn bitonic_merge<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) 
 }
 
 #[inline]
-fn bitonic_pass<T: PartialOrd>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
+fn bitonic_pass<T: Ord>(l_half: &mut [T], r_half: &mut [T], cond: bool) {
     for i in 0..l_half.len() {
         ops::swap(
             (l_half[i] < r_half[i]) ^ cond,
@@ -162,23 +162,23 @@ mod tests {
         }
     }
 
+    impl Eq for BigElem {}
+
     impl PartialEq for BigElem {
         fn eq(&self, other: &Self) -> bool {
             self.key == other.key
         }
     }
 
-    impl PartialOrd for BigElem {
-        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
-            self.key.partial_cmp(&other.key)
+    impl Ord for BigElem {
+        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+            self.key.cmp(&other.key)
         }
     }
 
-    impl Eq for BigElem {}
-
-    impl Ord for BigElem {
-        fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-            self.partial_cmp(other).unwrap()
+    impl PartialOrd for BigElem {
+        fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+            Some(self.cmp(other))
         }
     }
 
