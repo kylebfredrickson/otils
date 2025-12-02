@@ -1,6 +1,5 @@
 mod bitonic;
 use crate::Max;
-use bitonic::{bitonic_sort, parallel_bitonic_sort};
 use rayon::ThreadPool;
 
 pub fn sort<T: Ord + Max>(mut list: Vec<T>) -> Vec<T> {
@@ -8,7 +7,7 @@ pub fn sort<T: Ord + Max>(mut list: Vec<T>) -> Vec<T> {
     let remaining = list_len.next_power_of_two() - list_len;
     list.extend((0..remaining).map(|_| T::maximum()));
 
-    bitonic_sort(&mut list, true);
+    bitonic::bitonic_sort(&mut list, true);
     list.truncate(list_len);
     list
 }
@@ -22,7 +21,7 @@ pub fn par_sort<T: Ord + Send + Max>(
     let remaining = list_len.next_power_of_two() - list_len;
     list.extend((0..remaining).map(|_| T::maximum()));
 
-    parallel_bitonic_sort(&mut list, true, pool, threads);
+    bitonic::parallel_bitonic_sort(&mut list, true, pool, threads);
     list.truncate(list_len);
     list
 }
