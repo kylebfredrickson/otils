@@ -6,21 +6,17 @@ use crate::compact;
 use crate::ops;
 
 pub fn mark_half(n: usize) -> Vec<bool> {
-    let mut bits = vec![false; n];
-    let mut ell = (n + 1) / 2;
+    let mut remaining_ones = n / 2;
 
-    for i in 0..n {
-        let remaining = n - i;
-
-        let r = OsRng.try_next_u64().unwrap() as usize % remaining; // SECURITY: Not unbiased.
-        let take = r < ell;
-
-        bits[i] = take;
-        ell -= take as usize;
-    }
-    println!("{:?}", bits);
-
-    bits
+    (0..n)
+        .map(|i| {
+            let remaining = n - i;
+            let r = OsRng.try_next_u64().unwrap() as usize % remaining; // SECURITY: Not unbiased.
+            let bit = r < remaining_ones;
+            remaining_ones -= bit as usize;
+            bit
+        })
+        .collect()
 }
 
 pub fn parallel_or_shuffle<T: Send>(data: &mut [T], pool: &ThreadPool, threads: usize) {
@@ -58,6 +54,7 @@ pub fn or_shuffle<T>(data: &mut [T]) {
     }
 
     let bits = mark_half(n);
+    println!("{:?}", bits);
     compact::compact(data, &bits);
 
     let (l_data, r_data) = data.split_at_mut(data.len() / 2);
