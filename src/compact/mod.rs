@@ -1,7 +1,11 @@
 mod or_compact;
 use rayon::ThreadPool;
 
-pub fn compact<T: Send>(data: &mut [T], bits: &[usize], pool: &ThreadPool, threads: usize) {
+pub fn compact<T>(data: &mut [T], bits: &[bool]) {
+    or_compact::or_compact(data, bits);
+}
+
+pub fn par_compact<T: Send>(data: &mut [T], bits: &[bool], pool: &ThreadPool, threads: usize) {
     or_compact::parallel_or_compact(data, bits, pool, threads);
 }
 
@@ -20,8 +24,8 @@ mod tests {
                 let mut data: Vec<$t> = $v.into_iter().collect();
                 let real: Vec<$t> = $v.into_iter().filter(|x| $f(x)).collect();
 
-                let bits: Vec<usize> = data.iter().map(|x| $f(x).try_into().unwrap()).collect();
-                compact(&mut data[..], &bits[..], &pool, 2);
+                let bits: Vec<bool> = data.iter().map(|x| $f(x)).collect();
+                par_compact(&mut data[..], &bits[..], &pool, 2);
                 assert_eq!(&data[0..real.len()], &real[..]);
             };
         }
