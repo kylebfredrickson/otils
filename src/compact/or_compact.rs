@@ -9,12 +9,8 @@ pub fn parallel_or_compact<T: Send>(
 ) {
     let n = data.len();
 
-    if threads <= 1 {
+    if threads <= 1 || n == 0 {
         or_compact(data, bits);
-        return;
-    }
-
-    if n == 0 {
         return;
     }
 
@@ -42,12 +38,7 @@ fn parallel_or_off_compact<T: Send>(
 ) {
     let n = data.len();
 
-    if threads <= 1 {
-        or_off_compact(data, bits, offset);
-        return;
-    }
-
-    if n <= 2 {
+    if threads <= 1 || n <= 2 {
         or_off_compact(data, bits, offset);
         return;
     }

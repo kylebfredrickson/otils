@@ -10,12 +10,8 @@ pub fn parallel_bitonic_sort<T: Ord + Send>(
     pool: &ThreadPool,
     threads: usize,
 ) {
-    if threads <= 1 {
+    if threads <= 1 || data.len() <= 1 {
         bitonic_sort(data, cond);
-        return;
-    }
-
-    if data.len() <= 1 {
         return;
     }
 
@@ -37,12 +33,8 @@ fn parallel_bitonic_merge<T: Ord + Send>(
     pool: &ThreadPool,
     threads: usize,
 ) {
-    if threads <= 1 {
+    if threads <= 1 || l_half.len() < 1 {
         bitonic_merge(l_half, r_half, cond);
-        return;
-    }
-
-    if l_half.len() < 1 {
         return;
     }
 
@@ -81,6 +73,7 @@ fn parallel_bitonic_pass<T: Ord + Send>(
     //         &mut r_half[i],
     //     );
     // });
+
     let l_threads = threads / 2;
     let r_threads = threads - l_threads;
 

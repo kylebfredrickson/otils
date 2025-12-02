@@ -24,14 +24,9 @@ pub fn mark_half(n: usize) -> Vec<bool> {
 }
 
 pub fn parallel_or_shuffle<T: Send>(data: &mut [T], pool: &ThreadPool, threads: usize) {
-    if threads <= 1 {
-        or_shuffle(data);
-        return;
-    }
-
     let n = data.len();
 
-    if n <= 2 {
+    if threads <= 1 || n <= 2 {
         or_shuffle(data);
         return;
     }
@@ -69,16 +64,3 @@ pub fn or_shuffle<T>(data: &mut [T]) {
     or_shuffle(l_data);
     or_shuffle(r_data);
 }
-
-// fn mark_half(n: usize) -> Vec<usize> {
-//     let mut bits: Vec<usize> = vec![0; n];
-//     let mut l = (n + 1) / 2;
-//     print!("{:?}: ", l);
-//     for (idx, b) in bits.iter_mut().enumerate() {
-//         let r = (OsRng.try_next_u64().unwrap() & 1) as usize;
-//         *b = ObliviousOps::oselect(r < l / (n - idx), 1, 0);
-//         l = l - *b;
-//     }
-//     println!("{:?}", bits);
-//     bits
-// }
