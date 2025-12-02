@@ -11,7 +11,7 @@ mod ops;
 pub use crate::ops::{swap, ObliviousOps};
 
 mod shuffle;
-pub use crate::shuffle::shuffle;
+pub use crate::shuffle::{par_shuffle, shuffle};
 
 mod sort;
 pub use crate::sort::{par_sort, sort};

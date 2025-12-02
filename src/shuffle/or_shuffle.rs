@@ -1,21 +1,64 @@
 use rand::rngs::OsRng;
 use rand::TryRngCore;
+use rayon::ThreadPool;
 
 use crate::compact;
 use crate::ops;
+
+pub fn mark_half(n: usize) -> Vec<bool> {
+    let mut bits = vec![false; n];
+    let mut ell = (n + 1) / 2;
+
+    for i in 0..n {
+        let remaining = n - i;
+
+        let r = OsRng.try_next_u64().unwrap() as usize % remaining; // SECURITY: Not unbiased.
+        let take = r < ell;
+
+        bits[i] = take;
+        ell -= take as usize;
+    }
+    println!("{:?}", bits);
+
+    bits
+}
+
+pub fn parallel_or_shuffle<T: Send>(data: &mut [T], pool: &ThreadPool, threads: usize) {
+    if threads <= 1 {
+        or_shuffle(data);
+        return;
+    }
+
+    let n = data.len();
+
+    if n <= 2 {
+        or_shuffle(data);
+        return;
+    }
+
+    let bits = mark_half(n);
+    compact::par_compact(data, &bits, pool, threads);
+
+    let (l_data, r_data) = data.split_at_mut(n / 2);
+    let l_threads = threads / 2;
+    let r_threads = threads - l_threads;
+
+    pool.scope(|s| {
+        s.spawn(|_| parallel_or_shuffle(l_data, pool, l_threads));
+        s.spawn(|_| parallel_or_shuffle(r_data, pool, r_threads));
+    });
+}
 
 pub fn or_shuffle<T>(data: &mut [T]) {
     let n = data.len();
 
     if n < 2 {
         return;
-    }
-
-    if n == 2 {
-        let cond: bool = (OsRng.try_next_u32().unwrap() & 1) != 0;
+    } else if n == 2 {
+        let cond = (OsRng.try_next_u32().unwrap() & 1) != 0;
 
         let (l_data, r_data) = data.split_at_mut(data.len() / 2);
-        ops::swap(cond as bool, &mut l_data[0], &mut r_data[0]);
+        ops::swap(cond, &mut l_data[0], &mut r_data[0]);
         return;
     }
 
@@ -25,26 +68,6 @@ pub fn or_shuffle<T>(data: &mut [T]) {
     let (l_data, r_data) = data.split_at_mut(data.len() / 2);
     or_shuffle(l_data);
     or_shuffle(r_data);
-}
-
-pub fn mark_half(n: usize) -> Vec<bool> {
-    let mut m = vec![false; n];
-
-    let mut ell = (n + 1) / 2;
-    print!("{:?}: ", ell);
-
-    for i in 0..n {
-        let remaining = n - i;
-
-        let r = OsRng.try_next_u64().unwrap() as usize % remaining; // SECURITY: Not unbiased.
-        let take = r < ell;
-
-        m[i] = take;
-        ell -= take as usize;
-    }
-    println!("{:?}", m);
-
-    m
 }
 
 // fn mark_half(n: usize) -> Vec<usize> {

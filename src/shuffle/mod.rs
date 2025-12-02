@@ -1,9 +1,15 @@
-// use rayon::ThreadPool;
+use rayon::ThreadPool;
+
+use crate::shuffle::or_shuffle::parallel_or_shuffle;
 
 mod or_shuffle;
 
-pub fn shuffle<T: Send>(data: &mut [T]) {
+pub fn shuffle<T>(data: &mut [T]) {
     or_shuffle::or_shuffle(data);
+}
+
+pub fn par_shuffle<T: Send>(data: &mut [T], pool: &ThreadPool, threads: usize) {
+    parallel_or_shuffle(data, pool, threads);
 }
 
 #[cfg(test)]

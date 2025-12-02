@@ -47,12 +47,8 @@ fn parallel_or_off_compact<T: Send>(
         return;
     }
 
-    if n < 2 {
-        return;
-    } else if n == 2 {
-        let (l_data, r_data) = data.split_at_mut(1);
-        let b = (!bits[0] & bits[1]) ^ (offset != 0);
-        ops::swap(b, &mut l_data[0], &mut r_data[0]);
+    if n <= 2 {
+        or_off_compact(data, bits, offset);
         return;
     }
 
