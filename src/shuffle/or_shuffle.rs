@@ -54,7 +54,6 @@ pub fn or_shuffle<T>(data: &mut [T]) {
     }
 
     let bits = mark_half(n);
-    println!("{:?}", bits);
     compact::compact(data, &bits);
 
     let (l_data, r_data) = data.split_at_mut(data.len() / 2);
