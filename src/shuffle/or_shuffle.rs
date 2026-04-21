@@ -1,5 +1,4 @@
-use rand::rngs::OsRng;
-use rand::TryRngCore;
+use rand::Rng;
 use rayon::ThreadPool;
 
 use crate::compact;
@@ -11,7 +10,9 @@ pub fn mark_half(n: usize) -> Vec<bool> {
     (0..n)
         .map(|i| {
             let remaining = n - i;
-            let r = OsRng.try_next_u64().unwrap() as usize % remaining; // SECURITY: Not unbiased.
+
+            let r = rand::rng().random_range(0..remaining); //
+
             let bit = r < remaining_ones;
             remaining_ones -= bit as usize;
             bit
@@ -46,7 +47,7 @@ pub fn or_shuffle<T>(data: &mut [T]) {
     if n < 2 {
         return;
     } else if n == 2 {
-        let cond = (OsRng.try_next_u32().unwrap() & 1) != 0;
+        let cond = rand::rng().random_bool(0.5);
 
         let (l_data, r_data) = data.split_at_mut(data.len() / 2);
         ops::swap(cond, &mut l_data[0], &mut r_data[0]);
